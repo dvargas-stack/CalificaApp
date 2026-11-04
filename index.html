@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CalificaApp</title>
+    <!-- Librería para procesar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-main: #0b1329;
+            --surface: #172036;
+            --surface-hover: #1e2a47;
+            --surface-card: rgba(23, 32, 54, 0.7);
+            --border: #263554;
+            --border-active: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --accent: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 24px 14px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        /* Header Centrado */
+        .header {
+            text-align: center;
+            padding: 8px 0;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+            margin: 0 0 4px 0;
+            color: var(--text-primary);
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Botón de Ayuda Flotante Superior */
+        .btn-help {
+            position: absolute;
+            top: 8px;
+            right: 0;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid var(--border-active);
+            color: #60a5fa;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-help:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Step Banners */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .step-number {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        /* Cards Dropzone */
+        .card {
+            background: var(--surface);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 20px 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card:hover {
+            border-color: var(--border-active);
+            background: var(--surface-hover);
+        }
+
+        .card.active {
+            border-color: var(--success);
+            border-style: solid;
+            background: var(--success-bg);
+        }
+
+        .card input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .card-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .card.active .card-icon {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .card-content { flex-grow: 1; min-width: 0; overflow: hidden; }
+        .card-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+        .card-sub { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Panels */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 8px;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .status-badge.ready {
+            background: var(--success-bg);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; position: relative; }
+        label { font-size: 12px; font-weight: 600; color: #cbd5e1; display: flex; align-items: center; gap: 4px; }
+        
+        select, input[type="text"] { 
+            background: var(--bg-main); 
+            border: 1px solid var(--border); 
+            border-radius: 10px; 
+            padding: 12px; 
+            color: var(--text-primary); 
+            font-family: inherit; 
+            font-size: 13.5px; 
+            outline: none; 
+            transition: all 0.2s ease; 
+            width: 100%; 
+        }
+
+        select:focus, input:focus { 
+            border-color: var(--border-active);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Autocomplete Search Box */
+        .search-results-box {
+            position: absolute;
+            top: 100%; left: 0; right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border-active);
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 999;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            margin-top: 4px;
+        }
+
+        .search-item {
+            padding: 12px;
+            font-size: 12.5px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .search-item:hover { background: var(--primary); color: #ffffff; }
+        .search-item .badge-course { font-size: 10px; background: rgba(255,255,255,0.15); padding: 3px 7px; border-radius: 6px; font-weight: 600; white-space: nowrap; margin-left: 6px; }
+
+        .btn-add { 
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(139, 92, 246, 0.2)); 
+            color: #93c5fd; 
+            border: 1px solid var(--border-active); 
+            border-radius: 10px; 
+            padding: 14px; 
+            font-size: 13.5px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-top: 6px; 
+        }
+
+        .btn-add:hover { background: var(--primary); color: white; transform: translateY(-1px); }
+
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .staged-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .staged-table th { color: var(--text-secondary); text-transform: uppercase; font-size: 10.5px; font-weight: 700; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+        .staged-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+        .btn-del { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 15px; padding: 4px 8px; border-radius: 6px; }
+        .btn-del:hover { background: var(--danger-bg); }
+
+        /* Botón de Descargar Excel */
+        .btn-submit { 
+            background: linear-gradient(135deg, var(--primary), #1d4ed8); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            padding: 16px; 
+            font-size: 15px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+        .btn-submit:disabled { background: #1e293b; color: #475569; cursor: not-allowed; box-shadow: none; border: 1px solid var(--border); }
+
+        /* Mini Logo DV Pequeño al Pie */
+        .footer-logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 6px;
+            padding-top: 10px;
+        }
+
+        .logo-dv {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .logo-dv:hover {
+            opacity: 1;
+        }
+
+        .disabled { opacity: 0.35; pointer-events: none; filter: grayscale(0.8); }
+
+        /* Modal de Ayuda */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 19, 41, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-body ol {
+            padding-left: 20px;
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            line-height: 1.6;
+        }
+
+        .modal-body li {
+            margin-bottom: 12px;
+        }
+
+        .modal-body strong {
+            color: var(--text-primary);
+        }
+
+        @media (min-width: 540px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .form-group.full { grid-column: span 2; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Header Centrado -->
+        <div class="header">
+            <button class="btn-help" id="btn-help" title="Ayuda / Instrucciones">❓</button>
+            <h1>CalificaApp</h1>
+            <p>Modifica e ingresa notas de forma ágil en cualquier plantilla de Classroom Live</p>
+        </div>
+
+        <!-- Paso 1: Carga de Archivo -->
+        <div>
+            <div class="step-indicator">
+                <span class="step-number">1</span> Cargar Archivo
+            </div>
+            <div class="card" id="card-califica">
+                <div class="card-icon">📄</div>
+                <div class="card-content">
+                    <div class="card-title">Seleccionar Archivo Califica</div>
+                    <div class="card-sub" id="sub-califica">Toca aquí para elegir tu planilla .xls de Classroom Live</div>
+                </div>
+                <input type="file" id="input-califica" accept=".xls,.xlsx">
+            </div>
+        </div>
+
+        <!-- Paso 2: Edición Dinámica -->
+        <div class="panel disabled" id="form-panel">
+            <div class="panel-header">
+                <div class="step-indicator" style="margin-bottom:0;">
+                    <span class="step-number">2</span> Registrar Calificación
+                </div>
+                <span class="status-badge" id="status-badge">Sin Archivo</span>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="input-search">🔍 Buscar Estudiante (Rápido)</label>
+                    <input type="text" id="input-search" placeholder="Escribe el nombre del estudiante..." autocomplete="off">
+                    <div class="search-results-box" id="search-results"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="select-course">Curso</label>
+                    <select id="select-course">
+                        <option value="">-- Elige un curso --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="select-student">Estudiante</label>
+                    <select id="select-student">
+                        <option value="">-- Selecciona estudiante --</option>
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label for="select-activity">Actividad / Evaluación</label>
+                    <select id="select-activity" disabled>
+                        <option value="">-- Selecciona actividad --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="select-grade">Nota Rápida</label>
+                    <select id="select-grade">
+                        <option value="100">100 (Superior)</option>
+                        <option value="95">95 (Alto)</option>
+                        <option value="90">90 (Alto)</option>
+                        <option value="85">85 (Alto)</option>
+                        <option value="80">80 (Alto)</option>
+                        <option value="75">75 (Básico)</option>
+                        <option value="70">70 (Básico)</option>
+                        <option value="65">65 (Básico)</option>
+                        <option value="60">60 (Básico)</option>
+                        <option value="50">50 (Bajo)</option>
+                        <option value="40">40 (Bajo)</option>
+                        <option value="30">30 (Bajo)</option>
+                        <option value="custom">-- Escribir otra nota --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-custom-grade">Nota a Aplicar</label>
+                    <input type="text" id="input-custom-grade" placeholder="Ej: 85 o 4.5" value="100">
+                </div>
+            </div>
+
+            <button class="btn-add" id="btn-add">
+                <span>➕</span> Agregar Cambio a la Lista
+            </button>
+        </div>
+
+        <!-- Paso 3: Lista de Registros Acumulados -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="step-indicator" style="margin-bottom:0;">
+                    <span class="step-number">3</span> Lista de Cambios
+                </div>
+                <span class="status-badge" id="staged-count">0 cambios</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="staged-table">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Estudiante</th>
+                            <th>Actividad</th>
+                            <th>Nota</th>
+                            <th style="width: 30px; text-align: center;">Borrar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staged-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 16px;">
+                                Agrega las calificaciones requeridas para verlas antes de guardar.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Descargar Excel -->
+        <div>
+            <button class="btn-submit" id="btn-download" disabled>
+                Descargar Archivo Califica Excel
+            </button>
+        </div>
+
+        <!-- Logo DV Pequeño al Pie -->
+        <div class="footer-logo">
+            <div class="logo-dv" title="DV">DV</div>
+        </div>
+
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <div class="modal-overlay" id="modal-help">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Guía de Uso de CalificaApp</h2>
+                <button class="btn-close" id="btn-close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <ol>
+                    <li><strong>Cargar el Archivo:</strong> Haz clic en la sección "Cargar Archivo" y selecciona la plantilla Excel de Classroom Live (.xls o .xlsx).</li>
+                    <li><strong>Búsqueda Rápida:</strong> Puedes usar la barra de búsqueda rápida para encontrar un estudiante escribiendo su nombre directamente.</li>
+                    <li><strong>Selección Manual:</strong> También puedes elegir manualmente el curso, el estudiante y la actividad/evaluación deseada.</li>
+                    <li><strong>Asignar Nota:</strong> Selecciona una nota rápida del menú desplegable o escribe un valor personalizado en el campo correspondiente.</li>
+                    <li><strong>Acumular Cambios:</strong> Haz clic en "Agregar Cambio a la Lista". Puedes repetir este proceso varias veces antes de exportar.</li>
+                    <li><strong>Descargar:</strong> Revisa tu lista de cambios en la tabla inferior y presiona "Descargar Archivo Califica Excel" para obtener el documento actualizado.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables de Estado
+        let currentWB = null;
+        let currentFileName = "";
+        let allStudentsIndex = [];
+        let stagedEntries = [];
+        let currentCourseActivities = [];
+
+        // Lógica del Modal de Ayuda
+        const btnHelp = document.getElementById('btn-help');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const modalHelp = document.getElementById('modal-help');
+
+        btnHelp.addEventListener('click', () => modalHelp.classList.add('active'));
+        btnCloseModal.addEventListener('click', () => modalHelp.classList.remove('active'));
+        modalHelp.addEventListener('click', (e) => {
+            if (e.target === modalHelp) modalHelp.classList.remove('active');
+        });
+
+        // Normalizador de Texto
+        function cleanStr(s) {
+            if (!s) return '';
+            return s.toString().toUpperCase().trim().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/LOAISA/g, "LOAIZA").replace(/[^A-Z0-9 ]/g, "").replace(/\s+/g, " ");
+        }
+
+        // Extractor de Nombre Base para Agrupar Dimensiones
+        function extractBaseActivityName(fullTitle) {
+            if (!fullTitle) return '';
+            let s = fullTitle.toString().toUpperCase().trim();
+            s = s.replace(/^(CONOCIMIENTO|METODO|MÉTODO|USO|COMUNICACION|COMUNICACIÓN|EVA\.\s*TRIMESTRAL|EVALUACION\s*TRIMESTRAL|EVALUACIÓN\s*TRIMESTRAL)\s+/gi, '');
+            return s.trim();
+        }
+
+        // Carga y Análisis Dinámico del Archivo
+        document.getElementById('input-califica').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentFileName = file.name;
+                document.getElementById('sub-califica').textContent = file.name;
+                document.getElementById('card-califica').classList.add('active');
+
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    currentWB = XLSX.read(evt.target.result, { type: 'binary' });
+                    analyzeWorkbookDynamically();
+                };
+                reader.readAsBinaryString(file);
+            }
+        });
+
+        function analyzeWorkbookDynamically() {
+            if (!currentWB) return;
+
+            const selectCourse = document.getElementById('select-course');
+            selectCourse.innerHTML = '<option value="">-- Elige un curso --</option>';
+            allStudentsIndex = [];
+
+            currentWB.SheetNames.forEach((sheetName) => {
+                const ws = currentWB.Sheets[sheetName];
+                if (!ws) return;
+
+                let displayCourseName = sheetName;
+                const headerCourseCell = ws[XLSX.utils.encode_cell({r: 10, c: 1})];
+                if (headerCourseCell && headerCourseCell.v) {
+                    let strVal = headerCourseCell.v.toString();
+                    let match = strVal.match(/Curso:\s*([^(]+)\(([^)]+)\)/i);
+                    if (match) {
+                        displayCourseName = `Curso ${match[2].trim()} (${match[1].trim()})`;
+                    }
+                }
+
+                const opt = document.createElement('option');
+                opt.value = sheetName;
+                opt.textContent = displayCourseName;
+                selectCourse.appendChild(opt);
+
+                let r = 13;
+                while (true) {
+                    let nameCell = ws[XLSX.utils.encode_cell({r: r, c: 7})];
+                    if (!nameCell || !nameCell.v) break;
+
+                    let studentName = nameCell.v.toString().trim();
+                    if (studentName.length > 3 && !studentName.toUpperCase().includes('ESTUDIANTE')) {
+                        allStudentsIndex.push({
+                            name: studentName,
+                            sheetName: sheetName,
+                            displayCourse: displayCourseName,
+                            row: r
+                        });
+                    }
+                    r++;
+                }
+            });
+
+            document.getElementById('form-panel').classList.remove('disabled');
+            const badge = document.getElementById('status-badge');
+            badge.textContent = 'Plantilla Lista';
+            badge.classList.add('ready');
+        }
+
+        // Búsqueda Inteligente
+        const inputSearch = document.getElementById('input-search');
+        const searchResults = document.getElementById('search-results');
+
+        inputSearch.addEventListener('input', (e) => {
+            const query = cleanStr(e.target.value);
+            searchResults.innerHTML = '';
+
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            const matches = allStudentsIndex.filter(s => cleanStr(s.name).includes(query));
+
+            if (matches.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            matches.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                div.innerHTML = `
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">👤 ${item.name}</span>
+                    <span class="badge-course">${item.displayCourse}</span>
+                `;
+                div.addEventListener('click', () => {
+                    inputSearch.value = item.name;
+                    searchResults.style.display = 'none';
+                    document.getElementById('select-course').value = item.sheetName;
+                    populateCourseDetails(item.sheetName, item.row);
+                });
+                searchResults.appendChild(div);
+            });
+
+            searchResults.style.display = 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!inputSearch.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        document.getElementById('select-course').addEventListener('change', (e) => {
+            populateCourseDetails(e.target.value, null);
+        });
+
+        function populateCourseDetails(sheetName, targetRow) {
+            const selectStudent = document.getElementById('select-student');
+            const selectActivity = document.getElementById('select-activity');
+
+            selectStudent.innerHTML = '<option value="">-- Selecciona estudiante --</option>';
+            selectActivity.innerHTML = '<option value="">-- Selecciona actividad --</option>';
+
+            if (!sheetName || !currentWB) {
+                selectStudent.disabled = true;
+                selectActivity.disabled = true;
+                return;
+            }
+
+            const ws = currentWB.Sheets[sheetName];
+            if (!ws) return;
+
+            let r = 13;
+            let studentsFound = [];
+            while (true) {
+                let nameCell = ws[XLSX.utils.encode_cell({r: r, c: 7})];
+                if (!nameCell || !nameCell.v) break;
+                studentsFound.push({ row: r, name: nameCell.v.toString().trim() });
+                r++;
+            }
+
+            studentsFound.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify({ row: s.row, name: s.name });
+                opt.textContent = s.name;
+                selectStudent.appendChild(opt);
+            });
+            selectStudent.disabled = false;
+
+            if (targetRow !== null) {
+                const found = studentsFound.find(s => s.row === targetRow);
+                if (found) {
+                    selectStudent.value = JSON.stringify({ row: found.row, name: found.name });
+                }
+            }
+
+            let c = 8;
+            currentCourseActivities = [];
+            while (true) {
+                let headerCell = ws[XLSX.utils.encode_cell({r: 11, c: c})];
+                if (!headerCell || !headerCell.v) break;
+                
+                let activityTitle = headerCell.v.toString().trim();
+                let colRef = XLSX.utils.encode_col(c);
+                let baseName = extractBaseActivityName(activityTitle);
+
+                currentCourseActivities.push({ 
+                    colIdx: c, 
+                    colRef: colRef, 
+                    displayLabel: activityTitle,
+                    baseName: baseName
+                });
+                c++;
+            }
+
+            currentCourseActivities.forEach(act => {
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify(act);
+                opt.textContent = `[${act.colRef}] ${act.displayLabel}`;
+                selectActivity.appendChild(opt);
+            });
+            selectActivity.disabled = false;
+        }
+
+        document.getElementById('select-grade').addEventListener('change', (e) => {
+            const customInput = document.getElementById('input-custom-grade');
+            if (e.target.value !== 'custom') {
+                customInput.value = e.target.value;
+            } else {
+                customInput.value = '';
+                customInput.focus();
+            }
+        });
+
+        document.getElementById('btn-add').addEventListener('click', () => {
+            const courseVal = document.getElementById('select-course').value;
+            const studentVal = document.getElementById('select-student').value;
+            const activityVal = document.getElementById('select-activity').value;
+            const rawGrade = document.getElementById('input-custom-grade').value.trim();
+
+            if (!courseVal || !studentVal || !activityVal || !rawGrade) {
+                alert('Por favor completa todos los campos.');
+                return;
+            }
+
+            const studentObj = JSON.parse(studentVal);
+            const selectedActObj = JSON.parse(activityVal);
+            let formattedGrade = rawGrade.replace('.', ',');
+
+            const selectCourseEl = document.getElementById('select-course');
+            let displayCourse = selectCourseEl.options[selectCourseEl.selectedIndex].text;
+
+            const matchingActivities = currentCourseActivities.filter(act => 
+                act.baseName === selectedActObj.baseName || 
+                cleanStr(act.baseName) === cleanStr(selectedActObj.baseName)
+            );
+
+            matchingActivities.forEach(act => {
+                const isDuplicate = stagedEntries.some(e => 
+                    e.sheetName === courseVal && 
+                    e.studentRow === studentObj.row && 
+                    e.colIdx === act.colIdx
+                );
+
+                if (!isDuplicate) {
+                    stagedEntries.push({
+                        sheetName: courseVal,
+                        displayCourse: displayCourse,
+                        studentRow: studentObj.row,
+                        studentName: studentObj.name,
+                        colIdx: act.colIdx,
+                        activityLabel: act.displayLabel,
+                        gradeValue: formattedGrade
+                    });
+                }
+            });
+
+            updateStagedTableUI();
+        });
+
+        function updateStagedTableUI() {
+            const stagedBody = document.getElementById('staged-body');
+            const stagedCount = document.getElementById('staged-count');
+            const btnDownload = document.getElementById('btn-download');
+
+            stagedBody.innerHTML = '';
+            stagedCount.textContent = `${stagedEntries.length} cambio(s)`;
+
+            if (stagedEntries.length === 0) {
+                stagedBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 16px;">Agrega las calificaciones requeridas para verlas antes de guardar.</td></tr>';
+                btnDownload.disabled = true;
+                return;
+            }
+
+            stagedEntries.forEach((entry, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${entry.displayCourse}</strong></td>
+                    <td>${entry.studentName}</td>
+                    <td>${entry.activityLabel}</td>
+                    <td><strong style="color: var(--success);">${entry.gradeValue}</strong></td>
+                    <td style="text-align: center;">
+                        <button class="btn-del" onclick="removeEntry(${idx})">✕</button>
+                    </td>
+                `;
+                stagedBody.appendChild(tr);
+            });
+
+            btnDownload.disabled = false;
+        }
+
+        window.removeEntry = function(index) {
+            stagedEntries.splice(index, 1);
+            updateStagedTableUI();
+        };
+
+        document.getElementById('btn-download').addEventListener('click', () => {
+            if (!currentWB || stagedEntries.length === 0) return;
+
+            stagedEntries.forEach(entry => {
+                const ws = currentWB.Sheets[entry.sheetName];
+                if (ws) {
+                    const cellRef = XLSX.utils.encode_cell({ r: entry.studentRow, c: entry.colIdx });
+                    ws[cellRef] = { t: 's', v: entry.gradeValue };
+                }
+            });
+
+            const fileName = currentFileName.replace(/(\.xlsx|\.xls)$/i, '_Actualizado.xlsx');
+            XLSX.writeFile(currentWB, fileName);
+        });
+    </script>
+</body>
+</html>
