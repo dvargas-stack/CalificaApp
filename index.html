@@ -28,264 +28,109 @@
             --accent: #8b5cf6;
         }
 
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-primary);
-            margin: 0;
-            padding: 24px 14px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+            margin: 0; padding: 24px 14px;
+            display: flex; justify-content: center;
+            min-height: 100vh; overflow-x: hidden;
             background-image: 
                 radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.12) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
         }
 
-        .container {
-            max-width: 680px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            position: relative;
-        }
+        .container { max-width: 680px; width: 100%; display: flex; flex-direction: column; gap: 20px; position: relative; }
 
         /* Header Centrado */
-        .header {
-            text-align: center;
-            padding: 8px 0;
-            position: relative;
-        }
+        .header { text-align: center; padding: 8px 0; position: relative; }
+        .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.6px; margin: 0 0 4px 0; color: var(--text-primary); }
+        .header p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4; }
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.6px;
-            margin: 0 0 4px 0;
-            color: var(--text-primary);
-        }
-
-        .header p {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin: 0;
-            line-height: 1.4;
-        }
-
-        /* Botón de Ayuda Flotante Superior */
         .btn-help {
-            position: absolute;
-            top: 8px;
-            right: 0;
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid var(--border-active);
-            color: #60a5fa;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-help:hover {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.05);
-        }
-
-        /* Step Banners */
-        .step-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .step-number {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-        }
-
-        /* Cards Dropzone */
-        .card {
-            background: var(--surface);
-            border: 2px dashed var(--border);
-            border-radius: 16px;
-            padding: 20px 18px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            position: relative;
-            transition: all 0.25s ease;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .card:hover {
-            border-color: var(--border-active);
-            background: var(--surface-hover);
-        }
-
-        .card.active {
-            border-color: var(--success);
-            border-style: solid;
-            background: var(--success-bg);
-        }
-
-        .card input[type="file"] {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .card-icon {
-            width: 48px; height: 48px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
+            position: absolute; top: 8px; right: 0;
+            background: rgba(59, 130, 246, 0.15); border: 1px solid var(--border-active);
+            color: #60a5fa; width: 36px; height: 36px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
+            font-size: 16px; cursor: pointer; transition: all 0.2s ease;
         }
+        .btn-help:hover { background: var(--primary); color: white; transform: scale(1.05); }
 
-        .card.active .card-icon {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.2);
-        }
+        .step-indicator { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .step-number { width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; }
 
+        /* Dropzone */
+        .card { background: var(--surface); border: 2px dashed var(--border); border-radius: 16px; padding: 20px 18px; display: flex; align-items: center; gap: 16px; position: relative; transition: all 0.25s ease; cursor: pointer; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); }
+        .card:hover { border-color: var(--border-active); background: var(--surface-hover); }
+        .card.active { border-color: var(--success); border-style: solid; background: var(--success-bg); }
+        .card input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .card-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .card.active .card-icon { border-color: var(--success); background: rgba(16, 185, 129, 0.2); }
         .card-content { flex-grow: 1; min-width: 0; overflow: hidden; }
         .card-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
         .card-sub { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Panels */
-        .panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        }
+        /* Panel General */
+        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); }
+        .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 8px; }
+        .status-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border); white-space: nowrap; }
+        .status-badge.ready { background: var(--success-bg); color: var(--success); border-color: rgba(16, 185, 129, 0.4); }
 
-        .panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            gap: 8px;
-        }
-
-        .status-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            white-space: nowrap;
-        }
-
-        .status-badge.ready {
-            background: var(--success-bg);
-            color: var(--success);
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-
-        .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
         .form-group { display: flex; flex-direction: column; gap: 6px; position: relative; }
+        .form-group.full { grid-column: 1 / -1; }
         label { font-size: 12px; font-weight: 600; color: #cbd5e1; display: flex; align-items: center; gap: 4px; }
         
-        select, input[type="text"] { 
-            background: var(--bg-main); 
-            border: 1px solid var(--border); 
-            border-radius: 10px; 
-            padding: 12px; 
-            color: var(--text-primary); 
-            font-family: inherit; 
-            font-size: 13.5px; 
-            outline: none; 
-            transition: all 0.2s ease; 
-            width: 100%; 
+        select, input[type="text"], textarea { 
+            background: var(--bg-main); border: 1px solid var(--border); border-radius: 10px; padding: 12px; 
+            color: var(--text-primary); font-family: inherit; font-size: 13.5px; outline: none; transition: all 0.2s ease; width: 100%; 
         }
+        select:focus, input:focus, textarea:focus { border-color: var(--border-active); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        textarea { resize: vertical; min-height: 120px; }
 
-        select:focus, input:focus { 
-            border-color: var(--border-active);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        /* TABS */
+        .tabs-nav {
+            display: flex; gap: 8px; margin-bottom: 16px; background: var(--bg-main); padding: 6px; border-radius: 12px; border: 1px solid var(--border);
         }
-
-        /* Autocomplete Search Box */
-        .search-results-box {
-            position: absolute;
-            top: 100%; left: 0; right: 0;
-            background: var(--surface);
-            border: 1px solid var(--border-active);
-            border-radius: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 999;
-            display: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            margin-top: 4px;
+        .tab-btn {
+            flex: 1; background: transparent; border: none; color: var(--text-secondary); padding: 10px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
+        .tab-btn.active { background: var(--surface-hover); color: var(--primary); border: 1px solid var(--border-active); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .tab-content { display: none; flex-direction: column; gap: 14px; }
+        .tab-content.active { display: flex; }
 
-        .search-item {
-            padding: 12px;
-            font-size: 12.5px;
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
+        /* Componentes de los Tabs */
+        .current-grade-box {
+            background: rgba(16, 185, 129, 0.08); border: 1px dashed var(--success); padding: 10px 14px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;
         }
+        .current-grade-box strong { font-size: 15px; color: var(--success); }
+        
+        .student-checkbox-list {
+            max-height: 200px; overflow-y: auto; background: var(--bg-main); border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px;
+        }
+        .chk-item {
+            display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px; border-radius: 6px; cursor: pointer; color: #cbd5e1;
+        }
+        .chk-item:hover { background: rgba(255,255,255,0.05); }
+        .chk-item input { margin: 0; width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+        .chk-header { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 4px; font-weight: 700; color: white; }
 
+        .search-results-box { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-active); border-radius: 10px; max-height: 200px; overflow-y: auto; z-index: 999; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.7); margin-top: 4px; }
+        .search-item { padding: 12px; font-size: 12.5px; color: var(--text-primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.04); }
         .search-item:hover { background: var(--primary); color: #ffffff; }
-        .search-item .badge-course { font-size: 10px; background: rgba(255,255,255,0.15); padding: 3px 7px; border-radius: 6px; font-weight: 600; white-space: nowrap; margin-left: 6px; }
+        .search-item .badge-course { font-size: 10px; background: rgba(255,255,255,0.15); padding: 3px 7px; border-radius: 6px; font-weight: 600; margin-left: 6px; }
 
+        /* Botón Agregar y Animación Flash */
         .btn-add { 
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(139, 92, 246, 0.2)); 
-            color: #93c5fd; 
-            border: 1px solid var(--border-active); 
-            border-radius: 10px; 
-            padding: 14px; 
-            font-size: 13.5px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px; 
-            margin-top: 6px; 
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(139, 92, 246, 0.2)); color: #93c5fd; border: 1px solid var(--border-active); border-radius: 10px; padding: 14px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
         }
-
         .btn-add:hover { background: var(--primary); color: white; transform: translateY(-1px); }
+        
+        .flash-success { background: var(--success) !important; color: white !important; border-color: var(--success) !important; box-shadow: 0 0 15px rgba(16, 185, 129, 0.6) !important; transform: scale(1.02) !important; }
 
+        /* Tabla Staged */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .staged-table { width: 100%; border-collapse: collapse; font-size: 12px; }
         .staged-table th { color: var(--text-secondary); text-transform: uppercase; font-size: 10.5px; font-weight: 700; padding: 10px 8px; border-bottom: 1px solid var(--border); }
@@ -293,153 +138,52 @@
         .btn-del { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 15px; padding: 4px 8px; border-radius: 6px; }
         .btn-del:hover { background: var(--danger-bg); }
 
-        /* Botón de Descargar Excel */
-        .btn-submit { 
-            background: linear-gradient(135deg, var(--primary), #1d4ed8); 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            padding: 16px; 
-            font-size: 15px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            width: 100%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 10px; 
-            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
-        }
-
+        /* Footer Botones */
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .btn-submit { background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35); }
         .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
         .btn-submit:disabled { background: #1e293b; color: #475569; cursor: not-allowed; box-shadow: none; border: 1px solid var(--border); }
 
-        /* Mini Logo DV Pequeño al Pie */
-        .footer-logo {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 6px;
-            padding-top: 10px;
-        }
+        .btn-memory { background: transparent; color: var(--success); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-memory:hover:not(:disabled) { background: var(--success-bg); border-color: var(--success); }
+        .btn-memory:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .logo-dv {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            opacity: 0.85;
-            transition: opacity 0.2s;
-        }
-
-        .logo-dv:hover {
-            opacity: 1;
-        }
+        .footer-logo { display: flex; justify-content: center; align-items: center; padding-top: 10px; }
+        .logo-dv { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); opacity: 0.85; transition: opacity 0.2s; }
+        .logo-dv:hover { opacity: 1; }
 
         .disabled { opacity: 0.35; pointer-events: none; filter: grayscale(0.8); }
 
-        /* Modal de Ayuda */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(11, 19, 41, 0.85);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 500px;
-            padding: 24px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .modal-header h2 {
-            font-size: 18px;
-            font-weight: 800;
-            margin: 0;
-            color: var(--text-primary);
-        }
-
-        .btn-close {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .modal-body ol {
-            padding-left: 20px;
-            margin: 0;
-            color: var(--text-secondary);
-            font-size: 13.5px;
-            line-height: 1.6;
-        }
-
-        .modal-body li {
-            margin-bottom: 12px;
-        }
-
-        .modal-body strong {
-            color: var(--text-primary);
-        }
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 19, 41, 0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h2 { font-size: 18px; font-weight: 800; margin: 0; color: var(--text-primary); }
+        .btn-close { background: transparent; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; }
+        .modal-body ul { padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; }
+        .modal-body li { margin-bottom: 12px; }
+        .modal-body strong { color: var(--text-primary); }
 
         @media (min-width: 540px) {
             .form-grid { grid-template-columns: 1fr 1fr; }
-            .form-group.full { grid-column: span 2; }
+            .action-buttons { flex-direction: row; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         
-        <!-- Header Centrado -->
+        <!-- Header -->
         <div class="header">
             <button class="btn-help" id="btn-help" title="Ayuda / Instrucciones">❓</button>
             <h1>CalificaApp</h1>
             <p>Modifica e ingresa notas de forma ágil en cualquier plantilla de Classroom Live</p>
         </div>
 
-        <!-- Paso 1: Carga de Archivo -->
+        <!-- Paso 1 -->
         <div>
-            <div class="step-indicator">
-                <span class="step-number">1</span> Cargar Archivo
-            </div>
+            <div class="step-indicator"><span class="step-number">1</span> Cargar Archivo</div>
             <div class="card" id="card-califica">
                 <div class="card-icon">📄</div>
                 <div class="card-content">
@@ -450,79 +194,88 @@
             </div>
         </div>
 
-        <!-- Paso 2: Edición Dinámica -->
+        <!-- Paso 2: Configuración Global (Curso y Actividad) -->
         <div class="panel disabled" id="form-panel">
             <div class="panel-header">
-                <div class="step-indicator" style="margin-bottom:0;">
-                    <span class="step-number">2</span> Registrar Calificación
-                </div>
+                <div class="step-indicator" style="margin-bottom:0;"><span class="step-number">2</span> Modos de Calificación</div>
                 <span class="status-badge" id="status-badge">Sin Archivo</span>
             </div>
 
+            <!-- Global Selectors -->
             <div class="form-grid">
                 <div class="form-group full">
-                    <label for="input-search">🔍 Buscar Estudiante (Rápido)</label>
-                    <input type="text" id="input-search" placeholder="Escribe el nombre del estudiante..." autocomplete="off">
-                    <div class="search-results-box" id="search-results"></div>
+                    <label for="select-course">1. Elige el Curso</label>
+                    <select id="select-course"><option value="">-- Elige un curso --</option></select>
                 </div>
-
-                <div class="form-group">
-                    <label for="select-course">Curso</label>
-                    <select id="select-course">
-                        <option value="">-- Elige un curso --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="select-student">Estudiante</label>
-                    <select id="select-student">
-                        <option value="">-- Selecciona estudiante --</option>
-                    </select>
-                </div>
-
                 <div class="form-group full">
-                    <label for="select-activity">Actividad / Evaluación</label>
-                    <select id="select-activity" disabled>
-                        <option value="">-- Selecciona actividad --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="select-grade">Nota Rápida</label>
-                    <select id="select-grade">
-                        <option value="100">100 (Superior)</option>
-                        <option value="95">95 (Alto)</option>
-                        <option value="90">90 (Alto)</option>
-                        <option value="85">85 (Alto)</option>
-                        <option value="80">80 (Alto)</option>
-                        <option value="75">75 (Básico)</option>
-                        <option value="70">70 (Básico)</option>
-                        <option value="65">65 (Básico)</option>
-                        <option value="60">60 (Básico)</option>
-                        <option value="50">50 (Bajo)</option>
-                        <option value="40">40 (Bajo)</option>
-                        <option value="30">30 (Bajo)</option>
-                        <option value="custom">-- Escribir otra nota --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="input-custom-grade">Nota a Aplicar</label>
-                    <input type="text" id="input-custom-grade" placeholder="Ej: 85 o 4.5" value="100">
+                    <label for="select-activity">2. Elige la Actividad / Evaluación</label>
+                    <select id="select-activity" disabled><option value="">-- Selecciona actividad --</option></select>
                 </div>
             </div>
 
-            <button class="btn-add" id="btn-add">
-                <span>➕</span> Agregar Cambio a la Lista
-            </button>
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav" id="tabs-nav">
+                <button class="tab-btn active" data-target="tab-indiv">👤 Individual</button>
+                <button class="tab-btn" data-target="tab-group">👥 Grupal</button>
+                <button class="tab-btn" data-target="tab-paste">📋 Pegar Lista</button>
+            </div>
+
+            <!-- Tab 1: Individual -->
+            <div id="tab-indiv" class="tab-content active">
+                <div class="form-group">
+                    <label for="input-search">🔍 Buscar Estudiante</label>
+                    <input type="text" id="input-search" placeholder="Escribe para buscar..." autocomplete="off">
+                    <div class="search-results-box" id="search-results"></div>
+                </div>
+                <div class="form-group">
+                    <label for="select-student">O selecciona de la lista</label>
+                    <select id="select-student"><option value="">-- Selecciona estudiante --</option></select>
+                </div>
+                
+                <div class="current-grade-box">
+                    <span>Nota Actual en Archivo:</span>
+                    <strong id="current-grade-display">-</strong>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-indiv-grade">Nota a Aplicar (Ej: 85 o 4.5)</label>
+                    <input type="text" id="input-indiv-grade" placeholder="Escribe la nota" value="100">
+                </div>
+
+                <button class="btn-add" id="btn-add-indiv"><span>➕</span> Agregar a la Lista</button>
+            </div>
+
+            <!-- Tab 2: Grupal -->
+            <div id="tab-group" class="tab-content">
+                <label>Selecciona los estudiantes:</label>
+                <div class="student-checkbox-list" id="student-checkbox-list">
+                    <!-- Checkboxes generados dinámicamente -->
+                    <div style="color:var(--text-secondary); font-size:12px; padding:10px;">Selecciona un curso primero.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="input-group-grade">Nota grupal a Aplicar</label>
+                    <input type="text" id="input-group-grade" placeholder="Escribe la nota" value="100">
+                </div>
+
+                <button class="btn-add" id="btn-add-group"><span>➕</span> Agregar Grupo a la Lista</button>
+            </div>
+
+            <!-- Tab 3: Pegado -->
+            <div id="tab-paste" class="tab-content">
+                <div class="form-group">
+                    <label for="textarea-paste">Pega aquí la columna de notas copiadas de Excel</label>
+                    <textarea id="textarea-paste" placeholder="Ejemplo:&#10;85&#10;90&#10;100&#10;&#10;(Se asignarán estrictamente en el orden de lista del curso seleccionado)"></textarea>
+                </div>
+                <button class="btn-add" id="btn-add-paste"><span>➕</span> Procesar y Agregar Lista</button>
+            </div>
+
         </div>
 
-        <!-- Paso 3: Lista de Registros Acumulados -->
+        <!-- Paso 3: Lista Acumulada -->
         <div class="panel">
             <div class="panel-header">
-                <div class="step-indicator" style="margin-bottom:0;">
-                    <span class="step-number">3</span> Lista de Cambios
-                </div>
+                <div class="step-indicator" style="margin-bottom:0;"><span class="step-number">3</span> Cambios Pendientes</div>
                 <span class="status-badge" id="staged-count">0 cambios</span>
             </div>
 
@@ -534,88 +287,89 @@
                             <th>Estudiante</th>
                             <th>Actividad</th>
                             <th>Nota</th>
-                            <th style="width: 30px; text-align: center;">Borrar</th>
+                            <th style="width: 30px; text-align: center;">✕</th>
                         </tr>
                     </thead>
                     <tbody id="staged-body">
-                        <tr>
-                            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 16px;">
-                                Agrega las calificaciones requeridas para verlas antes de guardar.
-                            </td>
-                        </tr>
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 16px;">Lista vacía. Usa los modos de arriba para preparar tus notas.</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Descargar Excel -->
-        <div>
+        <!-- Botones de Acción Finales -->
+        <div class="action-buttons">
+            <button class="btn-memory" id="btn-memory" disabled title="Aplica los cambios en el archivo actual sin descargar, para seguir trabajando.">
+                💾 Guardar Cambios en Memoria
+            </button>
             <button class="btn-submit" id="btn-download" disabled>
-                Descargar Archivo Califica Excel
+                📥 Descargar Archivo Excel
             </button>
         </div>
 
-        <!-- Logo DV Pequeño al Pie -->
-        <div class="footer-logo">
-            <div class="logo-dv" title="DV">DV</div>
-        </div>
-
+        <!-- Mini Logo -->
+        <div class="footer-logo"><div class="logo-dv" title="DV">DV</div></div>
     </div>
 
     <!-- Modal de Ayuda -->
     <div class="modal-overlay" id="modal-help">
         <div class="modal-card">
             <div class="modal-header">
-                <h2>Guía de Uso de CalificaApp</h2>
+                <h2>Guía Rápida CalificaApp v1.1</h2>
                 <button class="btn-close" id="btn-close-modal">✕</button>
             </div>
             <div class="modal-body">
-                <ol>
-                    <li><strong>Cargar el Archivo:</strong> Haz clic en la sección "Cargar Archivo" y selecciona la plantilla Excel de Classroom Live (.xls o .xlsx).</li>
-                    <li><strong>Búsqueda Rápida:</strong> Puedes usar la barra de búsqueda rápida para encontrar un estudiante escribiendo su nombre directamente.</li>
-                    <li><strong>Selección Manual:</strong> También puedes elegir manualmente el curso, el estudiante y la actividad/evaluación deseada.</li>
-                    <li><strong>Asignar Nota:</strong> Selecciona una nota rápida del menú desplegable o escribe un valor personalizado en el campo correspondiente.</li>
-                    <li><strong>Acumular Cambios:</strong> Haz clic en "Agregar Cambio a la Lista". Puedes repetir este proceso varias veces antes de exportar.</li>
-                    <li><strong>Descargar:</strong> Revisa tu lista de cambios en la tabla inferior y presiona "Descargar Archivo Califica Excel" para obtener el documento actualizado.</li>
-                </ol>
+                <ul>
+                    <li><strong>Paso 1:</strong> Carga tu planilla .xls/.xlsx.</li>
+                    <li><strong>Paso 2 (Modos de Trabajo):</strong> Elige Curso y Actividad. Luego usa las pestañas:
+                        <br>👤 <em>Individual:</em> Busca/Selecciona 1 estudiante y mira su nota actual.
+                        <br>👥 <em>Grupal:</em> Marca varios estudiantes para darles la misma nota (Ideal para trabajos en equipo).
+                        <br>📋 <em>Pegar Lista:</em> Pega una columna entera de números copiada de otro Excel. Las notas se asocian en el orden de la lista del curso.
+                    </li>
+                    <li><strong>Paso 3:</strong> Revisa la tabla inferior. ¡Ojo! Los últimos que agregas salen arriba para mayor comodidad.</li>
+                    <li><strong>Guardar en Memoria:</strong> Haz clic para aplicar los cambios a la planilla que ya tienes cargada y vaciar la lista (útil para no estar descargando a cada rato).</li>
+                    <li><strong>Descargar:</strong> Descarga el archivo Excel final. El nombre incluirá la fecha y hora de la actualización.</li>
+                </ul>
             </div>
         </div>
     </div>
 
     <script>
-        // Variables de Estado
         let currentWB = null;
         let currentFileName = "";
         let allStudentsIndex = [];
         let stagedEntries = [];
         let currentCourseActivities = [];
+        let currentCourseStudents = []; // Estudiantes del curso activo ordenados
 
-        // Lógica del Modal de Ayuda
-        const btnHelp = document.getElementById('btn-help');
-        const btnCloseModal = document.getElementById('btn-close-modal');
-        const modalHelp = document.getElementById('modal-help');
+        // Utils
+        const cleanStr = s => s ? s.toString().toUpperCase().trim().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/LOAISA/g, "LOAIZA").replace(/[^A-Z0-9 ]/g, "").replace(/\s+/g, " ") : '';
+        const extractBaseAct = s => s ? s.toString().toUpperCase().trim().replace(/^(CONOCIMIENTO|METODO|MÉTODO|USO|COMUNICACION|COMUNICACIÓN|EVA\.\s*TRIMESTRAL|EVALUACION\s*TRIMESTRAL|EVALUACIÓN\s*TRIMESTRAL)\s+/gi, '').trim() : '';
 
-        btnHelp.addEventListener('click', () => modalHelp.classList.add('active'));
-        btnCloseModal.addEventListener('click', () => modalHelp.classList.remove('active'));
-        modalHelp.addEventListener('click', (e) => {
-            if (e.target === modalHelp) modalHelp.classList.remove('active');
+        // Flash Button Anim
+        function flashButton(btnId) {
+            const btn = document.getElementById(btnId);
+            btn.classList.add('flash-success');
+            setTimeout(() => btn.classList.remove('flash-success'), 800);
+        }
+
+        // Tabs Logic
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.getAttribute('data-target')).classList.add('active');
+            });
         });
 
-        // Normalizador de Texto
-        function cleanStr(s) {
-            if (!s) return '';
-            return s.toString().toUpperCase().trim().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/LOAISA/g, "LOAIZA").replace(/[^A-Z0-9 ]/g, "").replace(/\s+/g, " ");
-        }
+        // Modal Help
+        const modalHelp = document.getElementById('modal-help');
+        document.getElementById('btn-help').addEventListener('click', () => modalHelp.classList.add('active'));
+        document.getElementById('btn-close-modal').addEventListener('click', () => modalHelp.classList.remove('active'));
+        modalHelp.addEventListener('click', e => { if(e.target === modalHelp) modalHelp.classList.remove('active'); });
 
-        // Extractor de Nombre Base para Agrupar Dimensiones
-        function extractBaseActivityName(fullTitle) {
-            if (!fullTitle) return '';
-            let s = fullTitle.toString().toUpperCase().trim();
-            s = s.replace(/^(CONOCIMIENTO|METODO|MÉTODO|USO|COMUNICACION|COMUNICACIÓN|EVA\.\s*TRIMESTRAL|EVALUACION\s*TRIMESTRAL|EVALUACIÓN\s*TRIMESTRAL)\s+/gi, '');
-            return s.trim();
-        }
-
-        // Carga y Análisis Dinámico del Archivo
+        // Carga de Archivo
         document.getElementById('input-califica').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -626,120 +380,90 @@
                 const reader = new FileReader();
                 reader.onload = (evt) => {
                     currentWB = XLSX.read(evt.target.result, { type: 'binary' });
-                    analyzeWorkbookDynamically();
+                    analyzeWorkbook();
                 };
                 reader.readAsBinaryString(file);
             }
         });
 
-        function analyzeWorkbookDynamically() {
+        function analyzeWorkbook() {
             if (!currentWB) return;
-
             const selectCourse = document.getElementById('select-course');
             selectCourse.innerHTML = '<option value="">-- Elige un curso --</option>';
             allStudentsIndex = [];
 
-            currentWB.SheetNames.forEach((sheetName) => {
+            currentWB.SheetNames.forEach(sheetName => {
                 const ws = currentWB.Sheets[sheetName];
                 if (!ws) return;
-
+                
                 let displayCourseName = sheetName;
                 const headerCourseCell = ws[XLSX.utils.encode_cell({r: 10, c: 1})];
                 if (headerCourseCell && headerCourseCell.v) {
-                    let strVal = headerCourseCell.v.toString();
-                    let match = strVal.match(/Curso:\s*([^(]+)\(([^)]+)\)/i);
-                    if (match) {
-                        displayCourseName = `Curso ${match[2].trim()} (${match[1].trim()})`;
-                    }
+                    let match = headerCourseCell.v.toString().match(/Curso:\s*([^(]+)\(([^)]+)\)/i);
+                    if (match) displayCourseName = `Curso ${match[2].trim()} (${match[1].trim()})`;
                 }
 
                 const opt = document.createElement('option');
-                opt.value = sheetName;
-                opt.textContent = displayCourseName;
+                opt.value = sheetName; opt.textContent = displayCourseName;
                 selectCourse.appendChild(opt);
 
                 let r = 13;
                 while (true) {
                     let nameCell = ws[XLSX.utils.encode_cell({r: r, c: 7})];
                     if (!nameCell || !nameCell.v) break;
-
                     let studentName = nameCell.v.toString().trim();
                     if (studentName.length > 3 && !studentName.toUpperCase().includes('ESTUDIANTE')) {
-                        allStudentsIndex.push({
-                            name: studentName,
-                            sheetName: sheetName,
-                            displayCourse: displayCourseName,
-                            row: r
-                        });
+                        allStudentsIndex.push({ name: studentName, sheetName: sheetName, displayCourse: displayCourseName, row: r });
                     }
                     r++;
                 }
             });
 
             document.getElementById('form-panel').classList.remove('disabled');
-            const badge = document.getElementById('status-badge');
-            badge.textContent = 'Plantilla Lista';
-            badge.classList.add('ready');
+            document.getElementById('status-badge').textContent = 'Plantilla Lista';
+            document.getElementById('status-badge').classList.add('ready');
         }
 
-        // Búsqueda Inteligente
+        // Búsqueda Inteligente Global
         const inputSearch = document.getElementById('input-search');
         const searchResults = document.getElementById('search-results');
-
         inputSearch.addEventListener('input', (e) => {
             const query = cleanStr(e.target.value);
             searchResults.innerHTML = '';
-
-            if (query.length < 2) {
-                searchResults.style.display = 'none';
-                return;
-            }
-
+            if (query.length < 2) { searchResults.style.display = 'none'; return; }
+            
             const matches = allStudentsIndex.filter(s => cleanStr(s.name).includes(query));
-
-            if (matches.length === 0) {
-                searchResults.style.display = 'none';
-                return;
-            }
+            if (matches.length === 0) { searchResults.style.display = 'none'; return; }
 
             matches.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'search-item';
-                div.innerHTML = `
-                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">👤 ${item.name}</span>
-                    <span class="badge-course">${item.displayCourse}</span>
-                `;
+                div.innerHTML = `<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">👤 ${item.name}</span><span class="badge-course">${item.displayCourse}</span>`;
                 div.addEventListener('click', () => {
-                    inputSearch.value = item.name;
-                    searchResults.style.display = 'none';
+                    inputSearch.value = ''; searchResults.style.display = 'none';
                     document.getElementById('select-course').value = item.sheetName;
                     populateCourseDetails(item.sheetName, item.row);
                 });
                 searchResults.appendChild(div);
             });
-
             searchResults.style.display = 'block';
         });
+        document.addEventListener('click', e => { if (!inputSearch.contains(e.target)) searchResults.style.display = 'none'; });
 
-        document.addEventListener('click', (e) => {
-            if (!inputSearch.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.style.display = 'none';
-            }
-        });
-
-        document.getElementById('select-course').addEventListener('change', (e) => {
-            populateCourseDetails(e.target.value, null);
-        });
+        // Cambio de Curso
+        document.getElementById('select-course').addEventListener('change', (e) => populateCourseDetails(e.target.value, null));
 
         function populateCourseDetails(sheetName, targetRow) {
             const selectStudent = document.getElementById('select-student');
             const selectActivity = document.getElementById('select-activity');
+            const chkList = document.getElementById('student-checkbox-list');
 
             selectStudent.innerHTML = '<option value="">-- Selecciona estudiante --</option>';
             selectActivity.innerHTML = '<option value="">-- Selecciona actividad --</option>';
+            chkList.innerHTML = '<div class="chk-item chk-header"><label><input type="checkbox" id="chk-all"> Seleccionar Todos</label></div>';
+            currentCourseStudents = [];
 
             if (!sheetName || !currentWB) {
-                selectStudent.disabled = true;
                 selectActivity.disabled = true;
                 return;
             }
@@ -747,143 +471,199 @@
             const ws = currentWB.Sheets[sheetName];
             if (!ws) return;
 
+            // Extraer Estudiantes
             let r = 13;
-            let studentsFound = [];
             while (true) {
                 let nameCell = ws[XLSX.utils.encode_cell({r: r, c: 7})];
                 if (!nameCell || !nameCell.v) break;
-                studentsFound.push({ row: r, name: nameCell.v.toString().trim() });
+                currentCourseStudents.push({ row: r, name: nameCell.v.toString().trim() });
                 r++;
             }
 
-            studentsFound.forEach(s => {
+            // Llenar Individual y Grupal
+            currentCourseStudents.forEach((s, idx) => {
+                // Dropdown indiv
                 const opt = document.createElement('option');
-                opt.value = JSON.stringify({ row: s.row, name: s.name });
-                opt.textContent = s.name;
+                opt.value = JSON.stringify(s); opt.textContent = s.name;
                 selectStudent.appendChild(opt);
+
+                // Checkbox grupal
+                const div = document.createElement('div');
+                div.className = 'chk-item';
+                div.innerHTML = `<label><input type="checkbox" class="chk-student" value='${JSON.stringify(s)}'> ${s.name}</label>`;
+                chkList.appendChild(div);
             });
-            selectStudent.disabled = false;
+
+            // Lógica Select All
+            const chkAll = document.getElementById('chk-all');
+            chkAll.addEventListener('change', (e) => {
+                document.querySelectorAll('.chk-student').forEach(c => c.checked = e.target.checked);
+            });
 
             if (targetRow !== null) {
-                const found = studentsFound.find(s => s.row === targetRow);
-                if (found) {
-                    selectStudent.value = JSON.stringify({ row: found.row, name: found.name });
-                }
+                const found = currentCourseStudents.find(s => s.row === targetRow);
+                if (found) selectStudent.value = JSON.stringify(found);
             }
 
+            // Extraer Actividades
             let c = 8;
             currentCourseActivities = [];
             while (true) {
                 let headerCell = ws[XLSX.utils.encode_cell({r: 11, c: c})];
                 if (!headerCell || !headerCell.v) break;
-                
-                let activityTitle = headerCell.v.toString().trim();
-                let colRef = XLSX.utils.encode_col(c);
-                let baseName = extractBaseActivityName(activityTitle);
-
-                currentCourseActivities.push({ 
-                    colIdx: c, 
-                    colRef: colRef, 
-                    displayLabel: activityTitle,
-                    baseName: baseName
-                });
+                let title = headerCell.v.toString().trim();
+                currentCourseActivities.push({ colIdx: c, colRef: XLSX.utils.encode_col(c), displayLabel: title, baseName: extractBaseAct(title) });
                 c++;
             }
 
             currentCourseActivities.forEach(act => {
                 const opt = document.createElement('option');
-                opt.value = JSON.stringify(act);
-                opt.textContent = `[${act.colRef}] ${act.displayLabel}`;
+                opt.value = JSON.stringify(act); opt.textContent = `[${act.colRef}] ${act.displayLabel}`;
                 selectActivity.appendChild(opt);
             });
             selectActivity.disabled = false;
+            
+            updateCurrentGradeDisplay();
         }
 
-        document.getElementById('select-grade').addEventListener('change', (e) => {
-            const customInput = document.getElementById('input-custom-grade');
-            if (e.target.value !== 'custom') {
-                customInput.value = e.target.value;
+        // Mostrar Nota Actual en Memoria
+        document.getElementById('select-student').addEventListener('change', updateCurrentGradeDisplay);
+        document.getElementById('select-activity').addEventListener('change', updateCurrentGradeDisplay);
+
+        function updateCurrentGradeDisplay() {
+            const stuVal = document.getElementById('select-student').value;
+            const actVal = document.getElementById('select-activity').value;
+            const courseVal = document.getElementById('select-course').value;
+            const displayEl = document.getElementById('current-grade-display');
+
+            if (stuVal && actVal && courseVal && currentWB) {
+                const stu = JSON.parse(stuVal);
+                const act = JSON.parse(actVal);
+                const ws = currentWB.Sheets[courseVal];
+                const cell = ws[XLSX.utils.encode_cell({r: stu.row, c: act.colIdx})];
+                displayEl.textContent = cell ? cell.v : 'Casilla Vacía';
+                displayEl.style.color = cell ? 'var(--success)' : 'var(--text-secondary)';
             } else {
-                customInput.value = '';
-                customInput.focus();
+                displayEl.textContent = '-'; displayEl.style.color = 'var(--text-secondary)';
             }
+        }
+
+        // --- FUNCIONES CORE PARA AGREGAR NOTAS ---
+        function getMatchingActivities(selectedActObj) {
+            return currentCourseActivities.filter(act => 
+                act.baseName === selectedActObj.baseName || cleanStr(act.baseName) === cleanStr(selectedActObj.baseName)
+            );
+        }
+
+        function stageChange(courseVal, displayCourse, studentObj, actIdx, actLabel, formattedGrade) {
+            const isDup = stagedEntries.findIndex(e => e.sheetName === courseVal && e.studentRow === studentObj.row && e.colIdx === actIdx);
+            const entry = { sheetName: courseVal, displayCourse, studentRow: studentObj.row, studentName: studentObj.name, colIdx: actIdx, activityLabel: actLabel, gradeValue: formattedGrade };
+            if (isDup > -1) stagedEntries[isDup] = entry; // Sobrescribir si ya estaba en el stage
+            else stagedEntries.push(entry);
+        }
+
+        // BTN INDIVIDUAL
+        document.getElementById('btn-add-indiv').addEventListener('click', () => {
+            const courseVal = document.getElementById('select-course').value;
+            const stuVal = document.getElementById('select-student').value;
+            const actVal = document.getElementById('select-activity').value;
+            const rawGrade = document.getElementById('input-indiv-grade').value.trim();
+
+            if (!courseVal || !stuVal || !actVal || !rawGrade) return alert('Completa los campos.');
+            
+            const selectCourseEl = document.getElementById('select-course');
+            const displayCourse = selectCourseEl.options[selectCourseEl.selectedIndex].text;
+            
+            getMatchingActivities(JSON.parse(actVal)).forEach(act => {
+                stageChange(courseVal, displayCourse, JSON.parse(stuVal), act.colIdx, act.displayLabel, rawGrade.replace('.', ','));
+            });
+            
+            updateStagedTableUI();
+            flashButton('btn-add-indiv');
         });
 
-        document.getElementById('btn-add').addEventListener('click', () => {
+        // BTN GRUPAL
+        document.getElementById('btn-add-group').addEventListener('click', () => {
             const courseVal = document.getElementById('select-course').value;
-            const studentVal = document.getElementById('select-student').value;
-            const activityVal = document.getElementById('select-activity').value;
-            const rawGrade = document.getElementById('input-custom-grade').value.trim();
+            const actVal = document.getElementById('select-activity').value;
+            const rawGrade = document.getElementById('input-group-grade').value.trim();
+            const checkedBoxes = document.querySelectorAll('.chk-student:checked');
 
-            if (!courseVal || !studentVal || !activityVal || !rawGrade) {
-                alert('Por favor completa todos los campos.');
-                return;
-            }
+            if (!courseVal || !actVal || !rawGrade || checkedBoxes.length === 0) return alert('Verifica curso, actividad, nota y al menos un estudiante.');
+            
+            const displayCourse = document.getElementById('select-course').options[document.getElementById('select-course').selectedIndex].text;
+            const matchingActs = getMatchingActivities(JSON.parse(actVal));
+            const formattedGrade = rawGrade.replace('.', ',');
 
-            const studentObj = JSON.parse(studentVal);
-            const selectedActObj = JSON.parse(activityVal);
-            let formattedGrade = rawGrade.replace('.', ',');
-
-            const selectCourseEl = document.getElementById('select-course');
-            let displayCourse = selectCourseEl.options[selectCourseEl.selectedIndex].text;
-
-            const matchingActivities = currentCourseActivities.filter(act => 
-                act.baseName === selectedActObj.baseName || 
-                cleanStr(act.baseName) === cleanStr(selectedActObj.baseName)
-            );
-
-            matchingActivities.forEach(act => {
-                const isDuplicate = stagedEntries.some(e => 
-                    e.sheetName === courseVal && 
-                    e.studentRow === studentObj.row && 
-                    e.colIdx === act.colIdx
-                );
-
-                if (!isDuplicate) {
-                    stagedEntries.push({
-                        sheetName: courseVal,
-                        displayCourse: displayCourse,
-                        studentRow: studentObj.row,
-                        studentName: studentObj.name,
-                        colIdx: act.colIdx,
-                        activityLabel: act.displayLabel,
-                        gradeValue: formattedGrade
-                    });
-                }
+            checkedBoxes.forEach(box => {
+                const stuObj = JSON.parse(box.value);
+                matchingActs.forEach(act => stageChange(courseVal, displayCourse, stuObj, act.colIdx, act.displayLabel, formattedGrade));
             });
 
             updateStagedTableUI();
+            flashButton('btn-add-group');
         });
 
-        function updateStagedTableUI() {
-            const stagedBody = document.getElementById('staged-body');
-            const stagedCount = document.getElementById('staged-count');
-            const btnDownload = document.getElementById('btn-download');
+        // BTN PEGAR LISTA
+        document.getElementById('btn-add-paste').addEventListener('click', () => {
+            const courseVal = document.getElementById('select-course').value;
+            const actVal = document.getElementById('select-activity').value;
+            const rawText = document.getElementById('textarea-paste').value.trim();
 
-            stagedBody.innerHTML = '';
-            stagedCount.textContent = `${stagedEntries.length} cambio(s)`;
+            if (!courseVal || !actVal || !rawText) return alert('Faltan datos o texto para pegar.');
+            
+            const displayCourse = document.getElementById('select-course').options[document.getElementById('select-course').selectedIndex].text;
+            const matchingActs = getMatchingActivities(JSON.parse(actVal));
+            const lines = rawText.split(/\r?\n/); // Lee línea a línea
+            let added = 0;
 
-            if (stagedEntries.length === 0) {
-                stagedBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 16px;">Agrega las calificaciones requeridas para verlas antes de guardar.</td></tr>';
-                btnDownload.disabled = true;
-                return;
+            for (let i = 0; i < currentCourseStudents.length; i++) {
+                if (i >= lines.length) break; 
+                let gradeStr = lines[i].trim();
+                if (gradeStr === '') continue; // Ignora celdas vacías del pegado
+                
+                let formattedGrade = gradeStr.replace('.', ',');
+                matchingActs.forEach(act => stageChange(courseVal, displayCourse, currentCourseStudents[i], act.colIdx, act.displayLabel, formattedGrade));
+                added++;
             }
 
-            stagedEntries.forEach((entry, idx) => {
+            if(added === 0) alert('No se encontraron números válidos para asignar.');
+            else {
+                document.getElementById('textarea-paste').value = '';
+                updateStagedTableUI();
+                flashButton('btn-add-paste');
+            }
+        });
+
+        // Render Tabla (INVERSO)
+        function updateStagedTableUI() {
+            const body = document.getElementById('staged-body');
+            document.getElementById('staged-count').textContent = `${stagedEntries.length} cambios`;
+            body.innerHTML = '';
+            
+            const btnDown = document.getElementById('btn-download');
+            const btnMem = document.getElementById('btn-memory');
+
+            if (stagedEntries.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 16px;">Lista vacía. Usa los modos de arriba para preparar tus notas.</td></tr>';
+                btnDown.disabled = true; btnMem.disabled = true; return;
+            }
+
+            // Bucle Inverso: últimos cambios salen de primeros
+            stagedEntries.slice().reverse().forEach((entry, revIdx) => {
+                const originalIdx = stagedEntries.length - 1 - revIdx;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${entry.displayCourse}</strong></td>
                     <td>${entry.studentName}</td>
                     <td>${entry.activityLabel}</td>
                     <td><strong style="color: var(--success);">${entry.gradeValue}</strong></td>
-                    <td style="text-align: center;">
-                        <button class="btn-del" onclick="removeEntry(${idx})">✕</button>
-                    </td>
+                    <td style="text-align: center;"><button class="btn-del" onclick="removeEntry(${originalIdx})">✕</button></td>
                 `;
-                stagedBody.appendChild(tr);
+                body.appendChild(tr);
             });
 
-            btnDownload.disabled = false;
+            btnDown.disabled = false; btnMem.disabled = false;
         }
 
         window.removeEntry = function(index) {
@@ -891,6 +671,25 @@
             updateStagedTableUI();
         };
 
+        // Guardar en Memoria
+        document.getElementById('btn-memory').addEventListener('click', () => {
+            if (!currentWB || stagedEntries.length === 0) return;
+            
+            stagedEntries.forEach(entry => {
+                const ws = currentWB.Sheets[entry.sheetName];
+                if (ws) {
+                    const cellRef = XLSX.utils.encode_cell({ r: entry.studentRow, c: entry.colIdx });
+                    ws[cellRef] = { t: 's', v: entry.gradeValue };
+                }
+            });
+            stagedEntries = [];
+            updateStagedTableUI();
+            updateCurrentGradeDisplay();
+            flashButton('btn-memory');
+            setTimeout(() => alert('✅ Cambios aplicados a la planilla en memoria. Puedes seguir trabajando.'), 100);
+        });
+
+        // Descargar Archivo (Nombre dinámico)
         document.getElementById('btn-download').addEventListener('click', () => {
             if (!currentWB || stagedEntries.length === 0) return;
 
@@ -902,8 +701,14 @@
                 }
             });
 
-            const fileName = currentFileName.replace(/(\.xlsx|\.xls)$/i, '_Actualizado.xlsx');
+            // Fecha y hora
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+            const fileName = currentFileName.replace(/(\.xlsx|\.xls)$/i, `_${dateStr}.xlsx`);
+            
             XLSX.writeFile(currentWB, fileName);
+            stagedEntries = [];
+            updateStagedTableUI();
         });
     </script>
 </body>
