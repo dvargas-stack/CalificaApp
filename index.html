@@ -1,0 +1,3682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CalificaApp — Planilla Classroom Live</title>
+    <!-- SheetJS 0.18.5 para lectura/escritura preservando estructura original de Classroom Live -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #0b1329;
+            --surface: #172036;
+            --surface-hover: #1e2a47;
+            --border: #263554;
+            --border-active: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --accent: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+        }
+
+        /* Scrollbars discretos acorde al tema oscuro */
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: rgba(11, 19, 41, 0.6); }
+        ::-webkit-scrollbar-thumb { background: #33456b; border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b6396; }
+
+        /* =====================================================================
+           1. BARRA SUPERIOR COMPACTA (~52px)
+           ===================================================================== */
+        .topbar {
+            height: 52px;
+            min-height: 52px;
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-left, .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .topbar-right {
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .topbar-right::-webkit-scrollbar {
+            display: none;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .brand-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+        }
+
+        .file-chip-btn {
+            position: relative;
+            height: 34px;
+            max-width: 250px;
+            padding: 0 12px;
+            border-radius: 9px;
+            background: rgba(11, 19, 41, 0.75);
+            border: 1px dashed var(--border-active);
+            color: #93c5fd;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all 0.15s;
+            overflow: hidden;
+            flex-shrink: 1;
+        }
+
+        .file-chip-btn:hover {
+            background: var(--surface-hover);
+            border-style: solid;
+            color: #ffffff;
+        }
+
+        .file-chip-btn.loaded {
+            border-style: solid;
+            border-color: rgba(16, 185, 129, 0.5);
+            background: rgba(16, 185, 129, 0.12);
+            color: #6ee7b7;
+        }
+
+        .file-chip-btn input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-chip-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-btn {
+            height: 34px;
+            padding: 0 11px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(11, 19, 41, 0.65);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .top-btn:hover:not(:disabled) {
+            background: var(--surface-hover);
+            border-color: var(--border-active);
+        }
+
+        .top-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .top-btn.nav-active {
+            background: rgba(37, 99, 235, 0.22);
+            border-color: var(--border-active);
+            color: #93c5fd;
+        }
+
+        .top-btn.btn-mem {
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #34d399;
+        }
+
+        .top-btn.btn-mem:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: var(--success);
+        }
+
+        .top-btn.btn-dl {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .top-btn.btn-dl:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .badge-pill {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-size: 10.5px;
+            font-weight: 800;
+        }
+
+        /* =====================================================================
+           2. WORKSPACE PRINCIPAL: PLANILLA PROTAGONISTA + PANEL LATERAL
+           ===================================================================== */
+        .workspace {
+            flex: 1;
+            display: flex;
+            height: calc(100vh - 52px);
+            height: calc(100dvh - 52px);
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .sheet-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 12px 12px 12px;
+            gap: 8px;
+            background: var(--bg-main);
+        }
+
+        .sheet-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 7px 12px;
+            flex-shrink: 0;
+        }
+
+        .sheet-title-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .course-title-select {
+            background: var(--bg-main);
+            border: 1px solid var(--border-active);
+            border-radius: 8px;
+            padding: 5px 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 800;
+            outline: none;
+            max-width: 380px;
+            cursor: pointer;
+        }
+
+        .trimester-badge {
+            background: rgba(139, 92, 246, 0.18);
+            border: 1px solid rgba(139, 92, 246, 0.45);
+            color: #ddd6fe;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .students-count-badge {
+            background: rgba(59, 130, 246, 0.14);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            color: #93c5fd;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .course-avg-badge {
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #6ee7b7;
+            font-size: 11.5px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .sheet-hint {
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        /* Contenedor de la planilla clara de alto contraste */
+        .spreadsheet-container {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+            position: relative;
+        }
+
+        .spreadsheet-empty {
+            height: 100%;
+            min-height: 260px;
+            background: var(--surface);
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .grid-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: max-content;
+            min-width: 100%;
+            background: #ffffff;
+            color: #0f172a;
+        }
+
+        .grid-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: #f1f5f9;
+            color: #1e293b;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 8px 10px;
+            border-bottom: 2px solid #cbd5e1;
+            border-right: 1px solid #cbd5e1;
+            text-align: center;
+            min-width: 112px;
+            max-width: 165px;
+            vertical-align: middle;
+        }
+
+        .grid-table thead th.col-idx-head {
+            left: 0;
+            z-index: 30;
+            width: 42px;
+            min-width: 42px;
+            max-width: 42px;
+        }
+
+        .grid-table thead th.col-name-head {
+            left: 42px;
+            z-index: 30;
+            min-width: 230px;
+            max-width: 280px;
+            text-align: left;
+            box-shadow: 2px 0 6px rgba(15, 23, 42, 0.08);
+        }
+
+        .th-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.25;
+        }
+
+        .th-sub-badge {
+            display: inline-block;
+            margin-top: 3px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .grid-table tbody tr {
+            height: 36px;
+        }
+
+        .grid-table tbody td {
+            height: 36px;
+            padding: 0;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            background: #ffffff;
+            position: relative;
+        }
+
+        .grid-table tbody tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        .grid-table tbody tr:hover td {
+            background: #eff6ff;
+        }
+
+        .grid-table tbody tr.row-highlighted td {
+            background: #dbeafe !important;
+        }
+
+        .grid-table tbody td.col-idx-cell {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            width: 42px;
+            min-width: 42px;
+            max-width: 42px;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .grid-table tbody td.col-name-cell {
+            position: sticky;
+            left: 42px;
+            z-index: 10;
+            min-width: 230px;
+            max-width: 280px;
+            padding: 0 10px;
+            background: #ffffff;
+            color: #0f172a;
+            font-size: 12.5px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: default;
+            box-shadow: 2px 0 6px rgba(15, 23, 42, 0.06);
+        }
+
+        .grid-table tbody tr:nth-child(even) td.col-name-cell {
+            background: #f8fafc;
+        }
+
+        .grid-table tbody tr:hover td.col-name-cell {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .grid-table tbody tr.row-highlighted td.col-name-cell {
+            background: #dbeafe !important;
+        }
+
+        .grid-table tbody td.cell-pending::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 8px 8px 0;
+            border-color: transparent #10b981 transparent transparent;
+            pointer-events: none;
+        }
+
+        /* Editor de celda en planilla */
+        .cell-editor {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            text-align: center;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 0 6px;
+            transition: background-color 0.12s;
+        }
+
+        .cell-editor:focus {
+            background: #eff6ff;
+            box-shadow: inset 0 0 0 2px #2563eb;
+        }
+
+        /* Código de colores estricto: < 70 Rojo, 70-89 Azul, 90-100 Negro */
+        .grade-red {
+            color: #dc2626 !important;
+        }
+
+        .grade-blue {
+            color: #2563eb !important;
+        }
+
+        .grade-black {
+            color: #0f172a !important;
+        }
+
+        .grade-none {
+            color: #94a3b8 !important;
+            font-weight: 600 !important;
+        }
+
+        /* =====================================================================
+           3. PANEL LATERAL INDEPENDIENTE: BUSCADOR Y CAMBIOS
+           ===================================================================== */
+        .sidebar {
+            width: 350px;
+            min-width: 320px;
+            max-width: 390px;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            transition: width 0.2s ease, min-width 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            min-width: 0;
+            border-left: none;
+        }
+
+        .sidebar-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border);
+            background: rgba(11, 19, 41, 0.45);
+            flex-shrink: 0;
+        }
+
+        .sidebar-tab-btn {
+            padding: 11px 10px;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .sidebar-tab-btn.active {
+            color: #60a5fa;
+            border-bottom-color: var(--primary);
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .sidebar-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            gap: 12px;
+            padding: 14px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .sidebar-view.active {
+            display: flex;
+        }
+
+        .sidebar-disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: relative;
+        }
+
+        .field-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .dark-input, .dark-select {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 9px 11px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .dark-input:focus, .dark-select:focus {
+            border-color: var(--border-active);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            background: #101933;
+            border: 1px solid var(--border-active);
+            border-radius: 9px;
+            max-height: 210px;
+            overflow-y: auto;
+            z-index: 80;
+            display: none;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+        }
+
+        .search-result-row {
+            padding: 9px 11px;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .search-result-row:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .search-course-tag {
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 2px 6px;
+            border-radius: 5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Sub-pestañas exclusivas: Individual vs Grupal */
+        .mode-switch {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            background: var(--bg-main);
+            padding: 4px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+        }
+
+        .mode-btn {
+            padding: 7px;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .mode-btn.active {
+            background: var(--surface);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.45);
+        }
+
+        .mode-pane {
+            display: none;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .mode-pane.active {
+            display: flex;
+        }
+
+        .current-note-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .current-note-card {
+            background: var(--bg-main);
+            border: 1px dashed var(--border);
+            border-radius: 9px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .current-note-pill {
+            padding: 3px 10px;
+            border-radius: 6px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* Lista checkboxes grupal */
+        .group-box {
+            max-height: 230px;
+            overflow-y: auto;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .group-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+
+        .group-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .group-item input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .btn-primary-full {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 9px;
+            border: none;
+            background: var(--primary);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .btn-primary-full:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-primary-full:active {
+            transform: scale(0.99);
+        }
+
+        /* Lista de cambios pendientes en vista Cambios */
+        .changes-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .change-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .change-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .change-stu {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .change-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .change-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .change-grade-tag {
+            padding: 2px 9px;
+            border-radius: 6px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            font-size: 12.5px;
+            font-weight: 800;
+        }
+
+        .btn-remove-change {
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+
+        .btn-remove-change:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .sidebar-footer-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        /* =====================================================================
+           MENÚ FLOTANTE HOVER DE DEFINITIVA + FOTO DEL ESTUDIANTE
+           ===================================================================== */
+        .def-hover-menu {
+            position: fixed;
+            z-index: 950;
+            width: 360px;
+            max-width: calc(100vw - 24px);
+            background: rgba(15, 23, 42, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-active);
+            border-radius: 12px;
+            padding: 13px;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.65);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+            pointer-events: auto;
+        }
+
+        .def-hover-menu.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .def-hover-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 9px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .def-hover-identity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .def-hover-avatar {
+            width: 72px;
+            height: 72px;
+            min-width: 72px;
+            border-radius: 50%;
+            border: 2.5px solid var(--border-active);
+            background: linear-gradient(135deg, #1e3a8a, #312e81);
+            color: #dbeafe;
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        }
+
+        .def-hover-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .def-hover-stu {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .def-hover-score-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .def-hover-pill {
+            padding: 2px 9px;
+            border-radius: 7px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .def-hover-exact {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .def-hover-dims {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .def-hover-dim-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: rgba(23, 32, 54, 0.85);
+            border: 1px solid rgba(38, 53, 84, 0.9);
+            border-radius: 7px;
+            padding: 5px 8px;
+            font-size: 11px;
+        }
+
+        .def-hover-dim-lbl {
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+
+        .def-hover-dim-val {
+            padding: 1px 7px;
+            border-radius: 5px;
+            background: #ffffff;
+            font-weight: 800;
+            font-size: 11px;
+        }
+
+        /* =====================================================================
+           POPOVER SUPERIOR PARA OCULTAR / MOSTRAR CASILLAS VISUALMENTE
+           ===================================================================== */
+        .cols-popover {
+            position: fixed;
+            z-index: 960;
+            width: 280px;
+            max-width: calc(100vw - 24px);
+            background: var(--surface);
+            border: 1px solid var(--border-active);
+            border-radius: 12px;
+            padding: 11px;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.65);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .cols-popover.open {
+            display: flex;
+        }
+
+        .cols-popover-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .cols-popover-reset {
+            background: rgba(59, 130, 246, 0.16);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-family: inherit;
+            font-size: 10.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .cols-popover-reset:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .cols-popover-list {
+            max-height: 240px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .cols-popover-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 7px;
+            background: rgba(11, 19, 41, 0.55);
+            font-size: 12px;
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+
+        .cols-popover-item:hover {
+            background: var(--surface-hover);
+        }
+
+        .cols-popover-item input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        /* Toasts no bloqueantes */
+        #toast-area {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            background: #101933;
+            color: var(--text-primary);
+            border: 1px solid var(--border-active);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeUp 0.2s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =====================================================================
+           4. MODALES (AVISO DE DISCREPANCIA AL PEGAR)
+           ===================================================================== */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 12, 27, 0.82);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            max-height: 90dvh;
+            overflow-y: auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            animation: fadeUp 0.18s ease-out;
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .modal-title {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .alert-callout {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fde68a;
+            border-radius: 10px;
+            padding: 11px 13px;
+            font-size: 12.5px;
+            line-height: 1.45;
+        }
+
+        .stats-compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-mini-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 9px 11px;
+            text-align: center;
+        }
+
+        .stat-mini-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .stat-mini-lbl {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .modal-actions-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-modal {
+            padding: 10px 14px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--bg-main);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .btn-modal:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-active);
+        }
+
+        .btn-modal.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-modal.primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-modal.success {
+            background: var(--success);
+            border-color: var(--success);
+            color: #042419;
+        }
+
+        /* =====================================================================
+           5. ADAPTABILIDAD A PANTALLAS PEQUEÑAS, GRANDES Y ROTACIÓN
+           ===================================================================== */
+        @media (min-width: 1440px) {
+            .sidebar {
+                width: clamp(375px, 24vw, 460px);
+                max-width: 460px;
+            }
+            .course-title-select {
+                max-width: 480px;
+            }
+            .grid-table thead th.col-name-head,
+            .grid-table tbody td.col-name-cell {
+                min-width: 270px;
+                max-width: 320px;
+            }
+            .grid-table tbody tr,
+            .grid-table tbody td {
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 1120px) {
+            .hide-sm {
+                display: none;
+            }
+            .file-chip-btn {
+                max-width: 190px;
+            }
+            .sidebar {
+                width: 330px;
+                min-width: 300px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .workspace {
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 52px);
+                min-height: calc(100dvh - 52px);
+                overflow: visible;
+            }
+            .sheet-main {
+                padding: 8px;
+                gap: 6px;
+            }
+            .spreadsheet-container {
+                height: 58dvh;
+                max-height: 62dvh;
+                min-height: 300px;
+            }
+            .sidebar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                height: auto;
+            }
+            .sidebar.collapsed {
+                display: none;
+            }
+            .sheet-hint {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                height: auto;
+                min-height: 48px;
+                padding: 6px 8px;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .topbar-left {
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            .topbar-right {
+                width: 100%;
+                justify-content: space-between;
+                gap: 5px;
+                padding-bottom: 2px;
+            }
+            .top-btn {
+                height: 36px;
+                padding: 0 9px;
+                flex-shrink: 0;
+            }
+            .file-chip-btn {
+                max-width: 165px;
+                height: 34px;
+                padding: 0 9px;
+            }
+            .sheet-header-bar {
+                padding: 6px 8px;
+                gap: 6px;
+            }
+            .sheet-title-group {
+                width: 100%;
+                gap: 6px;
+            }
+            .course-title-select {
+                flex: 1 1 100%;
+                max-width: 100%;
+                font-size: 13px;
+            }
+            .grid-table thead th.col-idx-head,
+            .grid-table tbody td.col-idx-cell {
+                width: 32px;
+                min-width: 32px;
+                max-width: 32px;
+                font-size: 10.5px;
+            }
+            .grid-table thead th.col-name-head,
+            .grid-table tbody td.col-name-cell {
+                left: 32px;
+                min-width: 145px;
+                max-width: 165px;
+                padding-left: 8px;
+                padding-right: 8px;
+                font-size: 12px;
+            }
+            .grid-table thead th {
+                min-width: 92px;
+                max-width: 135px;
+                padding: 6px 6px;
+                font-size: 11px;
+            }
+            .dark-input, .dark-select, .cell-editor {
+                font-size: 16px;
+            }
+            .stats-compare-grid,
+            .sidebar-footer-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .brand span:last-child {
+                display: none;
+            }
+            .file-chip-btn {
+                max-width: 135px;
+            }
+            .grid-table thead th.col-name-head,
+            .grid-table tbody td.col-name-cell {
+                min-width: 128px;
+                max-width: 142px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 560px) {
+            .topbar {
+                height: 44px;
+                min-height: 44px;
+                padding: 0 10px;
+                flex-wrap: nowrap;
+            }
+            .topbar-left {
+                flex: 0 1 auto;
+            }
+            .topbar-right {
+                width: auto;
+                justify-content: flex-end;
+                padding-bottom: 0;
+            }
+            .top-btn, .file-chip-btn {
+                height: 32px;
+            }
+            .workspace {
+                flex-direction: row;
+                height: calc(100vh - 44px);
+                height: calc(100dvh - 44px);
+                min-height: 0;
+                overflow: hidden;
+            }
+            .sheet-main {
+                padding: 6px 8px;
+                gap: 5px;
+            }
+            .sheet-header-bar {
+                padding: 4px 8px;
+            }
+            .course-title-select {
+                flex: 0 1 auto;
+                max-width: 240px;
+                padding: 3px 8px;
+                font-size: 12.5px;
+            }
+            .spreadsheet-container {
+                flex: 1;
+                height: auto;
+                max-height: none;
+                min-height: 0;
+            }
+            .sidebar {
+                width: 285px;
+                min-width: 260px;
+                max-width: 310px;
+                height: 100%;
+                border-top: none;
+                border-left: 1px solid var(--border);
+            }
+            .sidebar.collapsed {
+                display: flex;
+                width: 0 !important;
+                min-width: 0 !important;
+                border-left: none;
+            }
+            .group-box {
+                max-height: 120px;
+            }
+            .modal-box {
+                padding: 14px;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =====================================================================
+         1. BARRA SUPERIOR COMPACTA (~52px)
+         ===================================================================== -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="brand">
+                <span class="brand-badge">CA</span>
+                <span>CalificaApp</span>
+            </div>
+
+            <!-- Selector compacto de archivo Califica -->
+            <label class="file-chip-btn" id="file-chip" title="Cargar o reemplazar planilla Califica (.xls / .xlsx)">
+                <span>📄</span>
+                <span class="file-chip-text" id="file-chip-label">Cargar Califica</span>
+                <input type="file" id="input-califica" accept=".xls,.xlsx">
+            </label>
+        </div>
+
+        <div class="topbar-right">
+            <button type="button" class="top-btn nav-active" id="top-nav-search" title="Abrir Buscador (Individual / Grupal)">
+                <span>🔍</span>
+                <span class="hide-sm">Buscador</span>
+            </button>
+
+            <button type="button" class="top-btn" id="top-nav-changes" title="Ver Cambios Pendientes">
+                <span>📝</span>
+                <span class="hide-sm">Cambios</span>
+                <span class="badge-pill" id="top-changes-badge">0</span>
+            </button>
+
+            <button type="button" class="top-btn" id="btn-toggle-cols-menu" disabled title="Ocultar o mostrar casillas de notas visualmente">
+                <span>👁️</span>
+                <span class="hide-sm">Casillas</span>
+                <span class="badge-pill" id="hidden-cols-badge" style="display: none;">0</span>
+            </button>
+
+            <button type="button" class="top-btn" id="btn-toggle-sidebar" title="Ocultar o mostrar panel lateral">
+                <span id="toggle-sidebar-icon">◫</span>
+                <span class="hide-sm" id="toggle-sidebar-text">Ocultar Panel</span>
+            </button>
+
+            <button type="button" class="top-btn btn-mem" id="btn-top-memory" disabled title="Guardar cambios en memoria sin descargar">
+                <span>💾</span>
+                <span class="hide-sm">Memoria</span>
+            </button>
+
+            <button type="button" class="top-btn btn-dl" id="btn-top-download" disabled title="Descargar Excel actualizado">
+                <span>📥</span>
+                <span>Descargar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         2. WORKSPACE: PLANILLA PROTAGONISTA + PANEL LATERAL INDEPENDIENTE
+         ===================================================================== -->
+    <div class="workspace">
+
+        <!-- ÁREA PRINCIPAL: PLANILLA DEDUPLICADA EN TIEMPO REAL -->
+        <main class="sheet-main">
+            <!-- Cabecera de la planilla: Curso + Trimestre + Estudiantes + Promedio -->
+            <div class="sheet-header-bar">
+                <div class="sheet-title-group">
+                    <select id="sheet-course-select" class="course-title-select" title="Cambiar curso / hoja">
+                        <option value="">Sin curso cargado</option>
+                    </select>
+                    <span class="trimester-badge" id="trimester-badge">Trimestre —</span>
+                    <span class="students-count-badge" id="students-count-badge">👥 0 estudiantes</span>
+                    <span class="course-avg-badge" id="course-avg-badge">Prom: —</span>
+                </div>
+                <div class="sheet-hint">Acerca el mouse al estudiante para ver Definitiva • Clic en celda para editar</div>
+            </div>
+
+            <!-- Contenedor de la tabla de calificaciones -->
+            <div class="spreadsheet-container" id="spreadsheet-container">
+                <div class="spreadsheet-empty">
+                    <div style="font-size: 36px; margin-bottom: 10px;">📊</div>
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">Carga tu archivo Califica en la barra superior</div>
+                    <div style="font-size: 12px; max-width: 460px; margin-top: 4px; line-height: 1.5;">
+                        Calcula en tiempo real la Definitiva de Classroom Live respetando los porcentajes y dimensiones propias de cada planilla Califica.
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- PANEL LATERAL INDEPENDIENTE: BUSCADOR Y CAMBIOS -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-tabs">
+                <button type="button" class="sidebar-tab-btn active" id="side-tab-search">
+                    <span>🔍</span>
+                    <span>Buscador</span>
+                </button>
+                <button type="button" class="sidebar-tab-btn" id="side-tab-changes">
+                    <span>📝</span>
+                    <span>Cambios</span>
+                    <span class="badge-pill" id="side-changes-count">0</span>
+                </button>
+            </div>
+
+            <!-- VISTA 1: BUSCADOR (INDIVIDUAL Y GRUPAL) -->
+            <div class="sidebar-view active sidebar-disabled" id="view-search">
+                <div class="field-group">
+                    <label class="field-label" for="global-student-search">
+                        <span>Búsqueda Global de Estudiante</span>
+                    </label>
+                    <input type="text" id="global-student-search" class="dark-input" placeholder="Nombre o apellido en cualquier curso..." autocomplete="off">
+                    <div class="search-dropdown" id="global-search-results"></div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="sidebar-activity-select">
+                        <span>Actividad / Evaluación</span>
+                        <span id="sync-cols-indicator" style="color: #60a5fa; font-size: 10.5px;"></span>
+                    </label>
+                    <select id="sidebar-activity-select" class="dark-select" disabled>
+                        <option value="">-- Selecciona actividad --</option>
+                    </select>
+                </div>
+
+                <!-- Sub-pestañas: Individual / Grupal -->
+                <div class="mode-switch">
+                    <button type="button" class="mode-btn active" data-mode="mode-indiv">👤 Individual</button>
+                    <button type="button" class="mode-btn" data-mode="mode-group">👥 Grupal</button>
+                </div>
+
+                <!-- MODO INDIVIDUAL -->
+                <div class="mode-pane active" id="mode-indiv">
+                    <div class="field-group">
+                        <label class="field-label" for="indiv-student-select">Estudiante del curso</label>
+                        <select id="indiv-student-select" class="dark-select">
+                            <option value="">-- Selecciona estudiante --</option>
+                        </select>
+                    </div>
+
+                    <div class="current-note-grid">
+                        <div class="current-note-card">
+                            <span>Nota Actividad</span>
+                            <span class="current-note-pill grade-none" id="indiv-current-grade">-</span>
+                        </div>
+                        <div class="current-note-card">
+                            <span>Definitiva Actual</span>
+                            <span class="current-note-pill grade-none" id="indiv-current-def">-</span>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="indiv-grade-input">Nueva calificación</label>
+                        <input type="text" id="indiv-grade-input" class="dark-input" placeholder="Ej: 85 o 92.5" value="100">
+                    </div>
+
+                    <button type="button" class="btn-primary-full" id="btn-apply-indiv">
+                        <span>➕</span>
+                        <span>Aplicar Nota Individual</span>
+                    </button>
+                </div>
+
+                <!-- MODO GRUPAL -->
+                <div class="mode-pane" id="mode-group">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <span>Estudiantes del grupo</span>
+                            <span id="group-checked-counter" style="color: #93c5fd;">0 marcados</span>
+                        </label>
+                        <div class="group-box" id="group-students-box">
+                            <div style="font-size: 12px; color: var(--text-secondary); padding: 10px; text-align: center;">
+                                Carga un archivo para ver estudiantes.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="group-grade-input">Calificación grupal</label>
+                        <input type="text" id="group-grade-input" class="dark-input" placeholder="Ej: 90" value="100">
+                    </div>
+
+                    <button type="button" class="btn-primary-full" id="btn-apply-group">
+                        <span>➕</span>
+                        <span>Aplicar Nota Grupal</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VISTA 2: CAMBIOS PENDIENTES -->
+            <div class="sidebar-view" id="view-changes">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span id="changes-summary-label" style="font-size: 12px; font-weight: 700; color: #cbd5e1;">0 cambio(s) pendiente(s)</span>
+                    <button type="button" id="btn-discard-all" style="display: none; background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 7px; padding: 3px 8px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;">
+                        Descartar todo
+                    </button>
+                </div>
+
+                <div class="changes-list" id="changes-list-container">
+                    <div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 28px 12px;">
+                        No hay cambios pendientes por guardar.
+                    </div>
+                </div>
+
+                <div class="sidebar-footer-actions">
+                    <button type="button" class="top-btn btn-mem" id="btn-side-memory" disabled style="justify-content: center; height: 38px;">
+                        <span>💾</span>
+                        <span>Memoria</span>
+                    </button>
+                    <button type="button" class="top-btn btn-dl" id="btn-side-download" disabled style="justify-content: center; height: 38px;">
+                        <span>📥</span>
+                        <span>Descargar</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- =====================================================================
+         MENÚ FLOTANTE HOVER: DEFINITIVA EN TIEMPO REAL + FOTO DEL ESTUDIANTE
+         ===================================================================== -->
+    <div class="def-hover-menu" id="def-hover-menu">
+        <div class="def-hover-head">
+            <div class="def-hover-identity">
+                <div class="def-hover-avatar" id="dhm-avatar"></div>
+                <div class="def-hover-stu" id="dhm-student-name">Estudiante</div>
+            </div>
+            <div class="def-hover-score-box">
+                <span class="def-hover-pill grade-none" id="dhm-rounded">-</span>
+                <span class="def-hover-exact" id="dhm-exact">-</span>
+            </div>
+        </div>
+        <div class="def-hover-dims" id="dhm-dims-list"></div>
+    </div>
+
+    <!-- =====================================================================
+         POPOVER SUPERIOR: OCULTAR / MOSTRAR CASILLAS DE NOTAS VISUALMENTE
+         ===================================================================== -->
+    <div class="cols-popover" id="cols-visibility-popover">
+        <div class="cols-popover-head">
+            <span>Casillas visibles</span>
+            <button type="button" class="cols-popover-reset" id="btn-show-all-cols">Mostrar todas</button>
+        </div>
+        <div class="cols-popover-list" id="cols-popover-list"></div>
+    </div>
+
+    <!-- =====================================================================
+         MODAL: AVISO DE DISCREPANCIA AL PEGAR NOTAS EN LA PLANILLA
+         ===================================================================== -->
+    <div class="modal-backdrop" id="modal-paste-warning">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="modal-title">
+                    <span>⚠️</span>
+                    <span>Cantidad de notas no coincide</span>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-cancel-paste-x">✕</button>
+            </div>
+
+            <div class="stats-compare-grid">
+                <div class="stat-mini-card">
+                    <div class="stat-mini-val" id="paste-stat-pasted">0</div>
+                    <div class="stat-mini-lbl">Notas copiadas</div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="stat-mini-val" id="paste-stat-students">0</div>
+                    <div class="stat-mini-lbl">Estudiantes disponibles</div>
+                </div>
+            </div>
+
+            <div class="alert-callout" id="paste-warning-detail">
+                La cantidad de notas pegadas no coincide con los estudiantes disponibles desde la fila seleccionada.
+            </div>
+
+            <div class="modal-actions-col">
+                <button type="button" class="btn-modal success" id="btn-paste-from-top" style="display: none;">
+                    <span>⬆️</span>
+                    <span>Alinear desde el estudiante #1</span>
+                </button>
+                <button type="button" class="btn-modal primary" id="btn-confirm-paste-anyway">
+                    <span>📋</span>
+                    <span>Pegar desde la fila seleccionada</span>
+                </button>
+                <button type="button" class="btn-modal" id="btn-cancel-paste">
+                    <span>Cancelar pegado</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de notificaciones Toast -->
+    <div id="toast-area"></div>
+
+    <script>
+        /**
+         * ESTADO GLOBAL DE CALIFICAAPP
+         */
+        let currentWB = null;
+        let loadedFileName = '';
+        let originalFileExt = 'xlsx';
+        let originalBookType = 'xlsx';
+
+        let allStudentsIndex = [];        // Índice global de estudiantes: [{ name, sheetName, displayCourse, row }]
+        let currentCourseStudents = [];   // Estudiantes del curso activo: [{ row, name }]
+        let currentUniqueActivities = []; // Actividades deduplicadas ordenadas por ciclo: [{ id, baseName, normKey, cycleNum, primaryColIdx, primaryColRef, linkedCols }]
+        let currentSheetFormulaModel = null; // Modelo matemático universal detectado para la hoja activa
+        let stagedEntries = [];           // Cambios físicos pendientes: [{ sheetName, displayCourse, studentRow, studentName, colIdx, colRef, rawLabel, baseName, normKey, linkedCount, linkedSummary, numericVal }]
+        let highlightedStudentRow = null;
+        let hiddenActivityKeys = new Set(); // Claves `${sheetName}__${normKey}` ocultas solo visualmente
+
+        let hasUnsavedChanges = false;    // True si hay ediciones sin descargar
+        let pendingPasteContext = null;   // Guarda datos del pegado cuando hay discrepancia de cantidad
+        let activeHoverStudent = null;    // { sheetName, studentRow, studentName }
+        let hideHoverTimer = null;
+
+        /**
+         * REFERENCIAS DE INTERFAZ Y NAVEGACIÓN
+         */
+        const sidebarEl = document.getElementById('sidebar');
+        const sideTabSearch = document.getElementById('side-tab-search');
+        const sideTabChanges = document.getElementById('side-tab-changes');
+        const topNavSearch = document.getElementById('top-nav-search');
+        const topNavChanges = document.getElementById('top-nav-changes');
+        const viewSearch = document.getElementById('view-search');
+        const viewChanges = document.getElementById('view-changes');
+        const btnToggleColsMenu = document.getElementById('btn-toggle-cols-menu');
+        const colsPopover = document.getElementById('cols-visibility-popover');
+        const defHoverMenu = document.getElementById('def-hover-menu');
+        const modalPasteWarning = document.getElementById('modal-paste-warning');
+
+        function switchSidebarTab(tabName) {
+            if (sidebarEl.classList.contains('collapsed')) {
+                sidebarEl.classList.remove('collapsed');
+                document.getElementById('toggle-sidebar-text').textContent = 'Ocultar Panel';
+            }
+
+            const isSearch = tabName === 'search';
+            sideTabSearch.classList.toggle('active', isSearch);
+            sideTabChanges.classList.toggle('active', !isSearch);
+            topNavSearch.classList.toggle('nav-active', isSearch);
+            topNavChanges.classList.toggle('nav-active', !isSearch);
+            viewSearch.classList.toggle('active', isSearch);
+            viewChanges.classList.toggle('active', !isSearch);
+        }
+
+        sideTabSearch.addEventListener('click', () => switchSidebarTab('search'));
+        sideTabChanges.addEventListener('click', () => switchSidebarTab('changes'));
+        topNavSearch.addEventListener('click', () => switchSidebarTab('search'));
+        topNavChanges.addEventListener('click', () => switchSidebarTab('changes'));
+
+        document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+            const isCollapsed = sidebarEl.classList.toggle('collapsed');
+            document.getElementById('toggle-sidebar-text').textContent = isCollapsed ? 'Mostrar Panel' : 'Ocultar Panel';
+        });
+
+        document.querySelectorAll('.mode-switch [data-mode]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.mode;
+                document.querySelectorAll('.mode-switch [data-mode]').forEach(b => {
+                    b.classList.toggle('active', b === btn);
+                });
+                document.getElementById('mode-indiv').classList.toggle('active', targetId === 'mode-indiv');
+                document.getElementById('mode-group').classList.toggle('active', targetId === 'mode-group');
+            });
+        });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (hasUnsavedChanges || stagedEntries.length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        /**
+         * BASE DE DATOS UNIVERSAL DE FOTOGRAFÍAS (PERSISTENTE EN INDEXEDDB)
+         */
+        const exactPhotoMap = new Map();       // Nombre limpio exacto -> dataURL
+        const sortedTokenPhotoMap = new Map(); // Palabras ordenadas alfabéticamente -> dataURL
+        let photoTokenEntries = [];            // [{ tokens: string[], url: string }]
+        const resolvedPhotoCache = new Map();  // Cache rápido por nombre de estudiante
+
+        const PHOTOS_DB_NAME = 'CalificaAppPhotosDB';
+        const PHOTOS_STORE_NAME = 'photos_store';
+        const PHOTOS_RECORD_KEY = 'universal_directory_v1';
+
+        function openPhotosDB() {
+            return new Promise((resolve, reject) => {
+                if (!window.indexedDB) return reject(new Error('IndexedDB no disponible'));
+                const req = indexedDB.open(PHOTOS_DB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(PHOTOS_STORE_NAME)) {
+                        db.createObjectStore(PHOTOS_STORE_NAME);
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function savePhotosToIndexedDB(rawObj) {
+            try {
+                const db = await openPhotosDB();
+                return await new Promise((resolve, reject) => {
+                    const tx = db.transaction(PHOTOS_STORE_NAME, 'readwrite');
+                    tx.objectStore(PHOTOS_STORE_NAME).put(rawObj, PHOTOS_RECORD_KEY);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+            } catch (e) {
+                console.warn('No se pudo persistir fotos en IndexedDB:', e);
+                return false;
+            }
+        }
+
+        async function loadPhotosFromIndexedDB() {
+            try {
+                const db = await openPhotosDB();
+                return await new Promise((resolve) => {
+                    const tx = db.transaction(PHOTOS_STORE_NAME, 'readonly');
+                    const req = tx.objectStore(PHOTOS_STORE_NAME).get(PHOTOS_RECORD_KEY);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function indexStudentPhotosObject(rawObj) {
+            exactPhotoMap.clear();
+            sortedTokenPhotoMap.clear();
+            photoTokenEntries = [];
+            resolvedPhotoCache.clear();
+
+            if (!rawObj || typeof rawObj !== 'object') {
+                return 0;
+            }
+
+            let count = 0;
+            Object.entries(rawObj).forEach(([rawName, photoUrl]) => {
+                if (!photoUrl || typeof photoUrl !== 'string') return;
+                const cleaned = cleanStr(rawName);
+                if (!cleaned) return;
+
+                exactPhotoMap.set(cleaned, photoUrl);
+                const tokens = cleaned.split(' ').filter(t => t.length > 1);
+                if (tokens.length > 0) {
+                    const sortedKey = [...tokens].sort().join(' ');
+                    if (!sortedTokenPhotoMap.has(sortedKey)) {
+                        sortedTokenPhotoMap.set(sortedKey, photoUrl);
+                    }
+                    photoTokenEntries.push({ tokens, url: photoUrl });
+                }
+                count++;
+            });
+
+            return count;
+        }
+
+        function findStudentPhotoUrl(studentName) {
+            if (!studentName || exactPhotoMap.size === 0) return null;
+            if (resolvedPhotoCache.has(studentName)) {
+                return resolvedPhotoCache.get(studentName);
+            }
+
+            const cleaned = cleanStr(studentName);
+            if (!cleaned) {
+                resolvedPhotoCache.set(studentName, null);
+                return null;
+            }
+
+            // 1. Coincidencia exacta normalizada
+            if (exactPhotoMap.has(cleaned)) {
+                const url = exactPhotoMap.get(cleaned);
+                resolvedPhotoCache.set(studentName, url);
+                return url;
+            }
+
+            // 2. Coincidencia independiente del orden (APELLIDOS NOMBRES vs NOMBRES APELLIDOS)
+            const stuTokens = cleaned.split(' ').filter(t => t.length > 1);
+            if (stuTokens.length > 0) {
+                const sortedKey = [...stuTokens].sort().join(' ');
+                if (sortedTokenPhotoMap.has(sortedKey)) {
+                    const url = sortedTokenPhotoMap.get(sortedKey);
+                    resolvedPhotoCache.set(studentName, url);
+                    return url;
+                }
+            }
+
+            // 3. Coincidencia flexible por superposición de palabras clave (ej. segundo nombre omitido)
+            if (stuTokens.length >= 2 && photoTokenEntries.length > 0) {
+                const stuSet = new Set(stuTokens);
+                const minRequired = stuTokens.length === 2 ? 2 : Math.min(3, stuTokens.length);
+                let bestUrl = null;
+                let bestScore = 0;
+
+                for (let i = 0; i < photoTokenEntries.length; i++) {
+                    const entry = photoTokenEntries[i];
+                    let matches = 0;
+                    for (let j = 0; j < entry.tokens.length; j++) {
+                        if (stuSet.has(entry.tokens[j])) matches++;
+                    }
+                    if (matches >= minRequired) {
+                        const score = matches / Math.max(stuTokens.length, entry.tokens.length);
+                        if (score >= 0.72 && score > bestScore) {
+                            bestScore = score;
+                            bestUrl = entry.url;
+                            if (score === 1) break;
+                        }
+                    }
+                }
+
+                if (bestUrl) {
+                    resolvedPhotoCache.set(studentName, bestUrl);
+                    return bestUrl;
+                }
+            }
+
+            resolvedPhotoCache.set(studentName, null);
+            return null;
+        }
+
+        function getStudentInitials(studentName) {
+            const parts = (studentName || '').trim().split(/\s+/).filter(Boolean);
+            if (parts.length === 0) return 'ST';
+            if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function renderDefHoverMenuContent(sheetName, studentRow, studentName) {
+            const avatarEl = document.getElementById('dhm-avatar');
+            const nameEl = document.getElementById('dhm-student-name');
+            const roundedEl = document.getElementById('dhm-rounded');
+            const exactEl = document.getElementById('dhm-exact');
+            const dimsEl = document.getElementById('dhm-dims-list');
+
+            nameEl.textContent = studentName || 'Estudiante';
+            avatarEl.innerHTML = '';
+
+            const photoUrl = findStudentPhotoUrl(studentName);
+            if (photoUrl) {
+                const img = document.createElement('img');
+                img.src = photoUrl;
+                img.alt = studentName;
+                img.onerror = () => {
+                    avatarEl.textContent = getStudentInitials(studentName);
+                };
+                avatarEl.appendChild(img);
+            } else {
+                avatarEl.textContent = getStudentInitials(studentName);
+            }
+
+            const defRes = calculateStudentDefinitiva(sheetName, studentRow);
+            roundedEl.classList.remove('grade-red', 'grade-blue', 'grade-black', 'grade-none');
+
+            if (defRes.rounded === null) {
+                roundedEl.textContent = '-';
+                roundedEl.classList.add('grade-none');
+                exactEl.textContent = 'Sin notas';
+            } else {
+                roundedEl.textContent = String(defRes.rounded);
+                roundedEl.classList.add(getGradeColorClass(defRes.rounded));
+                exactEl.textContent = `Exacta: ${defRes.exact.toFixed(2)}`;
+            }
+
+            dimsEl.innerHTML = '';
+            if (!defRes.blocks || defRes.blocks.length === 0) {
+                dimsEl.innerHTML = '<div style="font-size: 11px; color: var(--text-secondary); text-align: center; padding: 4px;">Sin dimensiones detectadas</div>';
+                return;
+            }
+
+            defRes.blocks.forEach(block => {
+                const row = document.createElement('div');
+                row.className = 'def-hover-dim-row';
+                const valText = block.partial !== null ? block.partial.toFixed(2) : '-';
+                const colorCls = block.partial !== null ? getGradeColorClass(block.partial) : 'grade-none';
+                row.innerHTML = `
+                    <span class="def-hover-dim-lbl">${block.label}</span>
+                    <span class="def-hover-dim-val ${colorCls}">${valText}</span>
+                `;
+                dimsEl.appendChild(row);
+            });
+        }
+
+        // Carga automática de ./fotos_estudiantes.json desde el repositorio (con respaldo en IndexedDB)
+        async function initUniversalStudentPhotos() {
+            const cachedPhotos = await loadPhotosFromIndexedDB();
+            if (cachedPhotos) {
+                indexStudentPhotosObject(cachedPhotos);
+            }
+
+            try {
+                const response = await fetch('./fotos_estudiantes.json', { cache: 'no-cache' });
+                if (!response.ok) return;
+                const remotePhotos = await response.json();
+                const total = indexStudentPhotosObject(remotePhotos);
+                if (total > 0) {
+                    await savePhotosToIndexedDB(remotePhotos);
+                    if (activeHoverStudent && defHoverMenu.classList.contains('visible')) {
+                        renderDefHoverMenuContent(
+                            activeHoverStudent.sheetName,
+                            activeHoverStudent.studentRow,
+                            activeHoverStudent.studentName
+                        );
+                    }
+                }
+            } catch (err) {
+                // Silencioso si se abre en modo local file:// o si el JSON aún no está publicado
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initUniversalStudentPhotos();
+        });
+
+        defHoverMenu.addEventListener('mouseenter', () => {
+            if (hideHoverTimer) {
+                clearTimeout(hideHoverTimer);
+                hideHoverTimer = null;
+            }
+        });
+
+        defHoverMenu.addEventListener('mouseleave', () => {
+            scheduleHideDefHoverMenu();
+        });
+
+        function showDefHoverMenu(anchorEl, sheetName, studentRow, studentName) {
+            if (hideHoverTimer) {
+                clearTimeout(hideHoverTimer);
+                hideHoverTimer = null;
+            }
+            activeHoverStudent = { sheetName, studentRow, studentName };
+            renderDefHoverMenuContent(sheetName, studentRow, studentName);
+
+            const rect = anchorEl.getBoundingClientRect();
+            const menuWidth = Math.min(360, window.innerWidth - 24);
+            let left = rect.right + 8;
+            if (left + menuWidth > window.innerWidth - 12) {
+                left = Math.max(12, Math.min(rect.left + 16, window.innerWidth - menuWidth - 12));
+            }
+
+            defHoverMenu.style.left = `${left}px`;
+            defHoverMenu.style.top = `${Math.max(58, rect.top)}px`;
+            defHoverMenu.classList.add('visible');
+
+            const menuRect = defHoverMenu.getBoundingClientRect();
+            if (menuRect.bottom > window.innerHeight - 12) {
+                const adjustedTop = Math.max(58, window.innerHeight - menuRect.height - 12);
+                defHoverMenu.style.top = `${adjustedTop}px`;
+            }
+        }
+
+        function scheduleHideDefHoverMenu() {
+            if (hideHoverTimer) clearTimeout(hideHoverTimer);
+            hideHoverTimer = setTimeout(() => {
+                defHoverMenu.classList.remove('visible');
+                activeHoverStudent = null;
+            }, 140);
+        }
+
+        /**
+         * CONTROL SUPERIOR PARA OCULTAR / MOSTRAR CASILLAS DE NOTAS VISUALMENTE
+         */
+        function updateHiddenColsBadge(sheetName) {
+            const activeSheet = sheetName || document.getElementById('sheet-course-select').value;
+            const badge = document.getElementById('hidden-cols-badge');
+            if (!activeSheet) {
+                badge.style.display = 'none';
+                return;
+            }
+            let hiddenCount = 0;
+            currentUniqueActivities.forEach(act => {
+                if (hiddenActivityKeys.has(`${activeSheet}__${act.normKey}`)) hiddenCount++;
+            });
+
+            if (hiddenCount > 0) {
+                badge.textContent = String(hiddenCount);
+                badge.style.display = 'inline-block';
+                btnToggleColsMenu.classList.add('nav-active');
+            } else {
+                badge.style.display = 'none';
+                btnToggleColsMenu.classList.remove('nav-active');
+            }
+        }
+
+        function renderColsVisibilityList(sheetName) {
+            const listEl = document.getElementById('cols-popover-list');
+            listEl.innerHTML = '';
+
+            if (!sheetName || currentUniqueActivities.length === 0) {
+                listEl.innerHTML = '<div style="font-size: 11.5px; color: var(--text-secondary); padding: 8px; text-align: center;">Sin casillas disponibles</div>';
+                return;
+            }
+
+            currentUniqueActivities.forEach(act => {
+                const key = `${sheetName}__${act.normKey}`;
+                const isVisible = !hiddenActivityKeys.has(key);
+                const item = document.createElement('label');
+                item.className = 'cols-popover-item';
+                item.innerHTML = `
+                    <input type="checkbox" ${isVisible ? 'checked' : ''}>
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${act.baseName}</span>
+                `;
+                item.querySelector('input').addEventListener('change', (ev) => {
+                    if (ev.target.checked) {
+                        hiddenActivityKeys.delete(key);
+                    } else {
+                        hiddenActivityKeys.add(key);
+                    }
+                    updateHiddenColsBadge(sheetName);
+                    renderSpreadsheetGrid(sheetName);
+                });
+                listEl.appendChild(item);
+            });
+        }
+
+        btnToggleColsMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = colsPopover.classList.contains('open');
+            if (isOpen) {
+                colsPopover.classList.remove('open');
+                return;
+            }
+            const sheetName = document.getElementById('sheet-course-select').value;
+            renderColsVisibilityList(sheetName);
+            const rect = btnToggleColsMenu.getBoundingClientRect();
+            const popWidth = Math.min(280, window.innerWidth - 24);
+            const left = Math.max(12, Math.min(rect.left, window.innerWidth - popWidth - 12));
+            colsPopover.style.left = `${left}px`;
+            colsPopover.style.top = `${rect.bottom + 6}px`;
+            colsPopover.classList.add('open');
+        });
+
+        document.getElementById('btn-show-all-cols').addEventListener('click', () => {
+            const sheetName = document.getElementById('sheet-course-select').value;
+            if (!sheetName) return;
+            currentUniqueActivities.forEach(act => {
+                hiddenActivityKeys.delete(`${sheetName}__${act.normKey}`);
+            });
+            updateHiddenColsBadge(sheetName);
+            renderColsVisibilityList(sheetName);
+            renderSpreadsheetGrid(sheetName);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (colsPopover.classList.contains('open') && !colsPopover.contains(e.target) && !btnToggleColsMenu.contains(e.target)) {
+                colsPopover.classList.remove('open');
+            }
+            if (defHoverMenu.classList.contains('visible') && !defHoverMenu.contains(e.target) && !e.target.closest('.col-name-cell')) {
+                defHoverMenu.classList.remove('visible');
+                activeHoverStudent = null;
+            }
+        });
+
+        function activateLoadedWorkbookObject(wbObj, fileName, ext, bookType, restoredStaged = []) {
+            currentWB = wbObj;
+            loadedFileName = fileName;
+            originalFileExt = ext || 'xlsx';
+            originalBookType = bookType || 'xlsx';
+            stagedEntries = Array.isArray(restoredStaged) ? restoredStaged : [];
+            highlightedStudentRow = null;
+            hiddenActivityKeys.clear();
+            updateHiddenColsBadge(null);
+
+            const fileChip = document.getElementById('file-chip');
+            fileChip.classList.add('loaded');
+            document.getElementById('file-chip-label').textContent = fileName;
+
+            analyzeWorkbook();
+            updateChangesUI();
+        }
+
+        /**
+         * DETECCIÓN DE NOMBRE DE CURSO Y TRIMESTRE (T1 -> Trimestre I, T2 -> Trimestre II, T3 -> Trimestre III)
+         */
+        function getCourseDisplayName(ws, sheetName) {
+            if (!ws) return sheetName;
+            const headerCourseCell = ws[XLSX.utils.encode_cell({ r: 10, c: 1 })];
+            if (headerCourseCell && headerCourseCell.v !== undefined && headerCourseCell.v !== null) {
+                const match = headerCourseCell.v.toString().match(/Curso:\s*([^(]+)\(([^)]+)\)/i);
+                if (match) {
+                    return `Curso ${match[2].trim()} (${match[1].trim()})`;
+                }
+            }
+            return sheetName;
+        }
+
+        function detectTrimesterLabel(ws, sheetName, fileName) {
+            const sources = [sheetName || '', fileName || ''];
+            if (ws) {
+                for (let r = 0; r <= 11; r++) {
+                    for (let c = 0; c <= 12; c++) {
+                        const cell = ws[XLSX.utils.encode_cell({ r, c })];
+                        if (cell && cell.v !== undefined && cell.v !== null) {
+                            sources.push(cell.v.toString());
+                        }
+                    }
+                }
+            }
+            const combined = sources.join(' ').toUpperCase();
+            if (/(?:TRIMESTRE[\s:\-0]*3\b|TRIMESTRE\s*III\b|\bT3\b)/i.test(combined)) return 'Trimestre III';
+            if (/(?:TRIMESTRE[\s:\-0]*2\b|TRIMESTRE\s*II\b|\bT2\b)/i.test(combined)) return 'Trimestre II';
+            if (/(?:TRIMESTRE[\s:\-0]*1\b|TRIMESTRE\s*I\b|\bT1\b)/i.test(combined)) return 'Trimestre I';
+            return 'Trimestre —';
+        }
+
+        /**
+         * NORMALIZACIÓN Y EXTRACCIÓN DE NOMBRE BASE DE ACTIVIDAD
+         */
+        const cleanStr = s => s
+            ? s.toString().toUpperCase().trim()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/LOAISA/g, 'LOAIZA')
+                .replace(/[^A-Z0-9 ]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+            : '';
+
+        function extractBaseAct(rawTitle) {
+            if (!rawTitle) return '';
+            let s = rawTitle.toString().toUpperCase().trim();
+            const prefixRegex = /^(CONOCIMIENTO|METODO|MÉTODO|USO|COMUNICACION|COMUNICACIÓN|EVA\.?\s*TRIMESTRAL|EVALUACION\s*TRIMESTRAL|EVALUACIÓN\s*TRIMESTRAL)[\s:\-–—.]+/i;
+            let prev;
+            do {
+                prev = s;
+                s = s.replace(prefixRegex, '').trim();
+            } while (s !== prev && s.length > 0);
+
+            return s || rawTitle.toString().toUpperCase().trim();
+        }
+
+        const normalizeActKey = s => cleanStr(extractBaseAct(s));
+
+        /**
+         * Extrae el número de ciclo (C1 -> 1, C2 -> 2, C 3 -> 3, CICLO 4 -> 4...)
+         * para ordenar las columnas en secuencia estricta de ciclo.
+         */
+        function extractCycleNumber(rawTitle) {
+            if (!rawTitle) return Number.POSITIVE_INFINITY;
+            const upper = rawTitle.toString().toUpperCase();
+            const match = upper.match(/(?:^|[^A-Z0-9])(?:CICLO|C)[\s\-_.:]*(\d+)(?:[^0-9]|$)/);
+            if (match && match[1]) {
+                const num = parseInt(match[1], 10);
+                if (Number.isFinite(num)) return num;
+            }
+            return Number.POSITIVE_INFINITY;
+        }
+
+        function parseNumericGrade(raw) {
+            if (raw === null || raw === undefined) return null;
+            const cleaned = raw.toString().trim().replace(',', '.');
+            if (cleaned === '') return null;
+            const num = Number(cleaned);
+            return Number.isFinite(num) ? num : null;
+        }
+
+        // Código de colores estricto: < 70 Rojo, 70 a 89 Azul, 90 a 100 Negro
+        function getGradeColorClass(val) {
+            const num = parseNumericGrade(val);
+            if (num === null) return 'grade-none';
+            if (num < 70) return 'grade-red';
+            if (num <= 89) return 'grade-blue';
+            return 'grade-black';
+        }
+
+        function showToast(msg, icon = 'ℹ️') {
+            const area = document.getElementById('toast-area');
+            const el = document.createElement('div');
+            el.className = 'toast-msg';
+            el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+            area.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(6px)';
+                el.style.transition = 'all 0.2s ease';
+                setTimeout(() => el.remove(), 220);
+            }, 2800);
+        }
+
+        /**
+         * =====================================================================
+         * MOTOR MATEMÁTICO UNIVERSAL DE DEFINITIVAS CLASSROOM LIVE
+         * - Detecta dinámicamente las dimensiones reales del archivo Califica
+         * - Lee porcentajes incrustados en la plantilla Excel si están presentes
+         * - Aplica los pesos exactos de Classroom Live y normalización por notas > 0
+         * =====================================================================
+         */
+        function classifyDimensionBlock(rawLabel) {
+            const upper = (rawLabel || '').toString().toUpperCase().trim()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            if (/^CONOCIMIENTO\b/.test(upper)) return 'CONOCIMIENTO';
+            if (/^METODO\b/.test(upper)) return 'METODO';
+            if (/^USO\b/.test(upper)) return 'USO';
+            if (/^COMUNICACION\b/.test(upper)) return 'COMUNICACION';
+            if (/^(EVA\.?\s*TRIMESTRAL|EVALUACION\s*TRIMESTRAL|EVA\.?\s*BIM|BIMESTRAL|TRIMESTRAL)\b/.test(upper)) {
+                return 'EVA_BIM';
+            }
+            return 'OTRO';
+        }
+
+        function isTrimestralCol(rawLabel) {
+            const upper = (rawLabel || '').toString().toUpperCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return /(EVA\.?\s*TRIMESTRAL|EVALUACION\s*TRIMESTRAL|BIMESTRAL)/.test(upper);
+        }
+
+        function extractCourseCodeNumber(ws, sheetName) {
+            const sources = [sheetName || ''];
+            const headerCourseCell = ws[XLSX.utils.encode_cell({ r: 10, c: 1 })];
+            if (headerCourseCell && headerCourseCell.v) sources.push(headerCourseCell.v.toString());
+            const combined = sources.join(' ');
+            const match = combined.match(/\b(\d{3,4})\b/);
+            return match ? parseInt(match[1], 10) : null;
+        }
+
+        function parseCellPercentage(rawVal) {
+            if (rawVal === null || rawVal === undefined) return null;
+            const str = rawVal.toString().trim().replace('%', '').replace(',', '.');
+            if (!str) return null;
+            const num = Number(str);
+            if (!Number.isFinite(num) || num <= 0) return null;
+            return num <= 1 ? num * 100 : num;
+        }
+
+        function readExplicitColumnWeight(ws, colIdx, rawLabel) {
+            const weightRows = [12, 10, 9];
+            for (const r of weightRows) {
+                const cell = ws[XLSX.utils.encode_cell({ r, c: colIdx })];
+                if (cell && cell.v !== undefined && cell.v !== null) {
+                    const parsed = parseCellPercentage(cell.v);
+                    if (parsed !== null && parsed <= 100) return parsed;
+                }
+            }
+            const headerPctMatch = (rawLabel || '').toString().match(/(\d+(?:[.,]\d+)?)\s*%/);
+            if (headerPctMatch) {
+                const parsed = parseCellPercentage(headerPctMatch[1]);
+                if (parsed !== null && parsed <= 100) return parsed;
+            }
+            return null;
+        }
+
+        function buildSheetFormulaModel(ws, sheetName) {
+            const courseNum = extractCourseCodeNumber(ws, sheetName);
+            const isGrade6 = courseNum !== null && courseNum >= 600 && courseNum < 700;
+
+            const blockDisplayNames = {
+                CONOCIMIENTO: 'Conocimiento',
+                METODO: 'Método',
+                USO: 'Uso',
+                COMUNICACION: 'Comunicación',
+                EVA_BIM: 'EVA BIM',
+                OTRO: 'General'
+            };
+
+            const blocksMap = new Map();
+            let c = 8;
+            while (true) {
+                const headerCell = ws[XLSX.utils.encode_cell({ r: 11, c })];
+                if (!headerCell || headerCell.v === undefined || headerCell.v === null) break;
+                const rawLabel = headerCell.v.toString().trim();
+                if (!rawLabel) break;
+
+                const blockKey = classifyDimensionBlock(rawLabel);
+                if (!blocksMap.has(blockKey)) {
+                    blocksMap.set(blockKey, {
+                        key: blockKey,
+                        label: blockDisplayNames[blockKey] || blockKey,
+                        cols: []
+                    });
+                }
+
+                blocksMap.get(blockKey).cols.push({
+                    colIdx: c,
+                    colRef: XLSX.utils.encode_col(c),
+                    rawLabel,
+                    baseName: extractBaseAct(rawLabel),
+                    isTrimestral: isTrimestralCol(rawLabel),
+                    explicitWeight: readExplicitColumnWeight(ws, c, rawLabel)
+                });
+                c++;
+            }
+
+            blocksMap.forEach((block) => {
+                const n = block.cols.length;
+                if (n === 0) return;
+
+                const allHaveExplicit = block.cols.every(col => col.explicitWeight !== null);
+                if (allHaveExplicit) {
+                    block.cols.forEach(col => {
+                        col.weight = col.explicitWeight;
+                    });
+                    block.weightSource = 'excel';
+                    return;
+                }
+
+                const k = block.key;
+                if (k === 'EVA_BIM') {
+                    block.cols.forEach(col => { col.weight = 100 / n; });
+                    block.weightSource = 'classroom_live';
+                    return;
+                }
+
+                if (isGrade6) {
+                    if (k === 'CONOCIMIENTO' && n === 4) {
+                        const w = [40, 9, 40, 11];
+                        block.cols.forEach((col, i) => { col.weight = w[i]; });
+                        block.weightSource = 'classroom_live';
+                        return;
+                    }
+                    if ((k === 'METODO' || k === 'USO') && n === 3) {
+                        const w = [60, 10, 30];
+                        block.cols.forEach((col, i) => { col.weight = w[i]; });
+                        block.weightSource = 'classroom_live';
+                        return;
+                    }
+                    if ((k === 'METODO' || k === 'USO') && n === 4) {
+                        const w = [70, 10, 10, 10];
+                        block.cols.forEach((col, i) => { col.weight = w[i]; });
+                        block.weightSource = 'classroom_live';
+                        return;
+                    }
+                    if (k === 'COMUNICACION' && n === 4) {
+                        const w = [20, 40, 10, 30];
+                        block.cols.forEach((col, i) => { col.weight = w[i]; });
+                        block.weightSource = 'classroom_live';
+                        return;
+                    }
+                } else {
+                    if ((k === 'CONOCIMIENTO' || k === 'METODO' || k === 'USO') && n === 3) {
+                        const w = [50, 40, 10];
+                        block.cols.forEach((col, i) => { col.weight = w[i]; });
+                        block.weightSource = 'classroom_live';
+                        return;
+                    }
+                    if (k === 'COMUNICACION' && n === 3) {
+                        const w = [10, 80, 10];
+                        block.cols.forEach((col, i) => { col.weight = w[i]; });
+                        block.weightSource = 'classroom_live';
+                        return;
+                    }
+                }
+
+                block.cols.forEach(col => {
+                    col.weight = Math.round((10000 / n)) / 100;
+                });
+                block.weightSource = 'equitativo';
+            });
+
+            const preferredOrder = ['CONOCIMIENTO', 'METODO', 'USO', 'COMUNICACION', 'EVA_BIM', 'OTRO'];
+            const orderedBlocks = preferredOrder
+                .filter(k => blocksMap.has(k))
+                .map(k => blocksMap.get(k));
+
+            return {
+                courseNum,
+                blocks: orderedBlocks
+            };
+        }
+
+        function calculateStudentDefinitiva(sheetName, studentRow) {
+            const model = currentSheetFormulaModel;
+            if (!model || !model.blocks || model.blocks.length === 0) {
+                return { rounded: null, exact: null, blocks: [] };
+            }
+
+            const blockResults = [];
+            let gradedSum = 0;
+            let gradedCount = 0;
+
+            model.blocks.forEach(block => {
+                let weightedSum = 0;
+                let activeWeightSum = 0;
+                const notesDetail = [];
+
+                block.cols.forEach(col => {
+                    const rawVal = getEffectiveCellRaw(sheetName, studentRow, col.colIdx);
+                    const numVal = parseNumericGrade(rawVal);
+                    const isCounted = numVal !== null && numVal > 0;
+
+                    if (isCounted) {
+                        weightedSum += numVal * col.weight;
+                        activeWeightSum += col.weight;
+                    }
+
+                    notesDetail.push({
+                        colRef: col.colRef,
+                        baseName: col.baseName,
+                        weight: col.weight,
+                        val: numVal,
+                        counted: isCounted
+                    });
+                });
+
+                const partialVal = activeWeightSum > 0
+                    ? Math.round((weightedSum / activeWeightSum) * 100) / 100
+                    : null;
+
+                if (partialVal !== null) {
+                    gradedSum += partialVal;
+                    gradedCount++;
+                }
+
+                blockResults.push({
+                    key: block.key,
+                    label: block.label,
+                    partial: partialVal,
+                    notes: notesDetail
+                });
+            });
+
+            if (gradedCount === 0) {
+                return { rounded: null, exact: null, blocks: blockResults };
+            }
+
+            const exactFinal = Math.round((gradedSum / gradedCount) * 100) / 100;
+            const roundedFinal = Math.round(exactFinal);
+
+            return {
+                rounded: roundedFinal,
+                exact: exactFinal,
+                gradedBlocks: gradedCount,
+                totalBlocks: model.blocks.length,
+                blocks: blockResults
+            };
+        }
+
+        function updateCourseAverageBadge(sheetName) {
+            const badge = document.getElementById('course-avg-badge');
+            if (!sheetName || currentCourseStudents.length === 0) {
+                badge.textContent = 'Prom: —';
+                return;
+            }
+
+            let sum = 0;
+            let count = 0;
+            currentCourseStudents.forEach(stu => {
+                const res = calculateStudentDefinitiva(sheetName, stu.row);
+                if (res.rounded !== null) {
+                    sum += res.rounded;
+                    count++;
+                }
+            });
+
+            if (count === 0) {
+                badge.textContent = 'Prom: —';
+            } else {
+                const avg = (sum / count).toFixed(1);
+                badge.textContent = `Prom: ${avg}`;
+            }
+        }
+
+        function refreshLiveDefinitivasInGrid(sheetName) {
+            updateCourseAverageBadge(sheetName);
+            if (activeHoverStudent && activeHoverStudent.sheetName === sheetName && defHoverMenu.classList.contains('visible')) {
+                renderDefHoverMenuContent(sheetName, activeHoverStudent.studentRow, activeHoverStudent.studentName);
+            }
+        }
+
+        /**
+         * CARGA DE ARCHIVO CALIFICA (.XLS / .XLSX)
+         */
+        document.getElementById('input-califica').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const extMatch = file.name.match(/\.(xlsx|xls)$/i);
+            const ext = extMatch ? extMatch[1].toLowerCase() : 'xlsx';
+            const bookType = ext === 'xls' ? 'biff8' : 'xlsx';
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const wb = XLSX.read(data, {
+                        type: 'array',
+                        cellStyles: true,
+                        cellNF: true,
+                        cellDates: true
+                    });
+
+                    activateLoadedWorkbookObject(wb, file.name, ext, bookType, []);
+                    hasUnsavedChanges = false;
+                    showToast(`Planilla cargada: ${file.name}`, '📗');
+                } catch (err) {
+                    console.error(err);
+                    showToast('Error al leer el archivo Excel de Califica', '⚠️');
+                } finally {
+                    e.target.value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        /**
+         * ANÁLISIS DEL LIBRO EXCEL E INDEXACIÓN GLOBAL DE ESTUDIANTES
+         */
+        function analyzeWorkbook() {
+            if (!currentWB) return;
+
+            const courseSelect = document.getElementById('sheet-course-select');
+            courseSelect.innerHTML = '';
+            allStudentsIndex = [];
+
+            currentWB.SheetNames.forEach(sheetName => {
+                const ws = currentWB.Sheets[sheetName];
+                if (!ws) return;
+
+                const displayCourse = getCourseDisplayName(ws, sheetName);
+                const opt = document.createElement('option');
+                opt.value = sheetName;
+                opt.textContent = displayCourse;
+                courseSelect.appendChild(opt);
+
+                let r = 13;
+                while (true) {
+                    const nameCell = ws[XLSX.utils.encode_cell({ r, c: 7 })];
+                    if (!nameCell || nameCell.v === undefined || nameCell.v === null) break;
+                    const studentName = nameCell.v.toString().trim();
+                    if (studentName.length > 2 && !studentName.toUpperCase().includes('ESTUDIANTE')) {
+                        allStudentsIndex.push({
+                            name: studentName,
+                            sheetName,
+                            displayCourse,
+                            row: r
+                        });
+                    }
+                    r++;
+                }
+            });
+
+            viewSearch.classList.remove('sidebar-disabled');
+            btnToggleColsMenu.disabled = false;
+            document.getElementById('btn-top-memory').disabled = false;
+            document.getElementById('btn-top-download').disabled = false;
+            document.getElementById('btn-side-memory').disabled = false;
+            document.getElementById('btn-side-download').disabled = false;
+
+            if (currentWB.SheetNames.length > 0) {
+                loadCourseSheet(currentWB.SheetNames[0]);
+            }
+        }
+
+        document.getElementById('sheet-course-select').addEventListener('change', (e) => {
+            highlightedStudentRow = null;
+            loadCourseSheet(e.target.value);
+        });
+
+        /**
+         * CARGA DE CURSO ACTIVO, DEDUPLICACIÓN DE COLUMNAS Y ORDEN POR CICLO (C1..Cn)
+         */
+        function loadCourseSheet(sheetName, targetStudentRow = null) {
+            if (!currentWB || !sheetName) return;
+            const ws = currentWB.Sheets[sheetName];
+            if (!ws) return;
+
+            document.getElementById('sheet-course-select').value = sheetName;
+            document.getElementById('trimester-badge').textContent = detectTrimesterLabel(ws, sheetName, loadedFileName);
+
+            // 0. Construir modelo matemático universal para este curso/hoja
+            currentSheetFormulaModel = buildSheetFormulaModel(ws, sheetName);
+
+            // 1. Extraer estudiantes del curso activo (Columna H -> c = 7, desde fila 14 -> r = 13)
+            currentCourseStudents = [];
+            let r = 13;
+            while (true) {
+                const nameCell = ws[XLSX.utils.encode_cell({ r, c: 7 })];
+                if (!nameCell || nameCell.v === undefined || nameCell.v === null) break;
+                const studentName = nameCell.v.toString().trim();
+                if (studentName.length > 2 && !studentName.toUpperCase().includes('ESTUDIANTE')) {
+                    currentCourseStudents.push({ row: r, name: studentName });
+                }
+                r++;
+            }
+
+            document.getElementById('students-count-badge').textContent = `👥 ${currentCourseStudents.length} estudiantes`;
+
+            // 2. Extraer actividades de fila 12 (r = 11, desde columna I -> c = 8) y deduplicar por actividad base
+            const groupedMap = new Map();
+            let c = 8;
+            let seqIdx = 0;
+            while (true) {
+                const headerCell = ws[XLSX.utils.encode_cell({ r: 11, c })];
+                if (!headerCell || headerCell.v === undefined || headerCell.v === null) break;
+                const rawLabel = headerCell.v.toString().trim();
+                if (!rawLabel) break;
+
+                const baseName = extractBaseAct(rawLabel);
+                const normKey = normalizeActKey(rawLabel) || `ACT_${c}`;
+                const colRef = XLSX.utils.encode_col(c);
+
+                if (!groupedMap.has(normKey)) {
+                    groupedMap.set(normKey, {
+                        id: normKey,
+                        baseName,
+                        normKey,
+                        cycleNum: extractCycleNumber(baseName || rawLabel),
+                        originalOrder: seqIdx++,
+                        primaryColIdx: c,
+                        primaryColRef: colRef,
+                        linkedCols: []
+                    });
+                }
+
+                groupedMap.get(normKey).linkedCols.push({
+                    colIdx: c,
+                    colRef,
+                    rawLabel
+                });
+                c++;
+            }
+
+            // Ordenar por secuencia de ciclo (C1, C2, C3...) y dejar sin ciclo al final
+            currentUniqueActivities = Array.from(groupedMap.values()).sort((a, b) => {
+                if (a.cycleNum !== b.cycleNum) return a.cycleNum - b.cycleNum;
+                return a.originalOrder - b.originalOrder;
+            });
+
+            // 3. Llenar selector de actividades en Buscador
+            const actSelect = document.getElementById('sidebar-activity-select');
+            actSelect.innerHTML = '<option value="">-- Selecciona actividad --</option>';
+            currentUniqueActivities.forEach((act, idx) => {
+                const opt = document.createElement('option');
+                opt.value = String(idx);
+                const suffix = act.linkedCols.length > 1 ? ` (×${act.linkedCols.length})` : '';
+                opt.textContent = `${act.baseName}${suffix}`;
+                actSelect.appendChild(opt);
+            });
+            actSelect.disabled = currentUniqueActivities.length === 0;
+            if (currentUniqueActivities.length > 0) {
+                actSelect.value = '0';
+            }
+            updateSyncColsIndicator();
+
+            // 4. Llenar selector Individual y checkboxes Grupal
+            const indivSelect = document.getElementById('indiv-student-select');
+            const groupBox = document.getElementById('group-students-box');
+            indivSelect.innerHTML = '<option value="">-- Selecciona estudiante --</option>';
+
+            if (currentCourseStudents.length === 0) {
+                groupBox.innerHTML = '<div style="font-size: 12px; color: var(--text-secondary); padding: 10px; text-align: center;">No se encontraron estudiantes en esta hoja.</div>';
+            } else {
+                groupBox.innerHTML = `
+                    <label class="group-item" style="border-bottom: 1px solid var(--border); padding-bottom: 7px; margin-bottom: 3px; font-weight: 700; color: #93c5fd;">
+                        <input type="checkbox" id="chk-group-all">
+                        <span>Seleccionar todos (${currentCourseStudents.length})</span>
+                    </label>
+                `;
+
+                currentCourseStudents.forEach((stu) => {
+                    const opt = document.createElement('option');
+                    opt.value = String(stu.row);
+                    opt.textContent = stu.name;
+                    indivSelect.appendChild(opt);
+
+                    const item = document.createElement('label');
+                    item.className = 'group-item';
+                    item.innerHTML = `
+                        <input type="checkbox" class="chk-group-student" value="${stu.row}">
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${stu.name}</span>
+                    `;
+                    groupBox.appendChild(item);
+                });
+
+                const chkAll = document.getElementById('chk-group-all');
+                chkAll.addEventListener('change', (ev) => {
+                    document.querySelectorAll('.chk-group-student').forEach(cb => {
+                        cb.checked = ev.target.checked;
+                    });
+                    updateGroupCheckedCounter();
+                });
+
+                document.querySelectorAll('.chk-group-student').forEach(cb => {
+                    cb.addEventListener('change', updateGroupCheckedCounter);
+                });
+            }
+            updateGroupCheckedCounter();
+
+            if (targetStudentRow !== null) {
+                indivSelect.value = String(targetStudentRow);
+                highlightedStudentRow = targetStudentRow;
+            }
+
+            updateHiddenColsBadge(sheetName);
+            renderColsVisibilityList(sheetName);
+            renderSpreadsheetGrid(sheetName);
+            updateIndivCurrentGrade();
+
+            if (targetStudentRow !== null) {
+                scrollToStudentRow(targetStudentRow);
+            }
+        }
+
+        function updateSyncColsIndicator() {
+            const indicator = document.getElementById('sync-cols-indicator');
+            const idxStr = document.getElementById('sidebar-activity-select').value;
+            if (idxStr === '' || !currentUniqueActivities[Number(idxStr)]) {
+                indicator.textContent = '';
+                return;
+            }
+            const act = currentUniqueActivities[Number(idxStr)];
+            indicator.textContent = act.linkedCols.length > 1
+                ? `Sincroniza ${act.linkedCols.length} cols`
+                : `Col ${act.primaryColRef}`;
+        }
+
+        function updateGroupCheckedCounter() {
+            const count = document.querySelectorAll('.chk-group-student:checked').length;
+            document.getElementById('group-checked-counter').textContent = `${count} marcados`;
+        }
+
+        function scrollToStudentRow(studentRow) {
+            const rowEl = document.querySelector(`tr[data-student-row="${studentRow}"]`);
+            if (rowEl) {
+                rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        /**
+         * LECTURA Y REGISTRO DE CAMBIOS SOBRE ACTIVIDADES DEDUPLICADAS
+         */
+        function getEffectiveCellRaw(sheetName, studentRow, colIdx) {
+            const staged = stagedEntries.find(
+                e => e.sheetName === sheetName && e.studentRow === studentRow && e.colIdx === colIdx
+            );
+            if (staged) return staged.numericVal;
+
+            if (!currentWB || !currentWB.Sheets[sheetName]) return '';
+            const ws = currentWB.Sheets[sheetName];
+            const cell = ws[XLSX.utils.encode_cell({ r: studentRow, c: colIdx })];
+            if (!cell || cell.v === undefined || cell.v === null) return '';
+            return cell.v;
+        }
+
+        function getUniqueActivityEffectiveInfo(sheetName, studentRow, uniqueAct) {
+            let isPending = false;
+            let firstNonEmpty = '';
+
+            for (const col of uniqueAct.linkedCols) {
+                const staged = stagedEntries.find(
+                    e => e.sheetName === sheetName && e.studentRow === studentRow && e.colIdx === col.colIdx
+                );
+                if (staged) {
+                    isPending = true;
+                    if (firstNonEmpty === '') firstNonEmpty = staged.numericVal;
+                } else if (firstNonEmpty === '') {
+                    const raw = getEffectiveCellRaw(sheetName, studentRow, col.colIdx);
+                    if (raw !== '' && raw !== null && raw !== undefined) {
+                        firstNonEmpty = raw;
+                    }
+                }
+            }
+
+            return {
+                displayVal: firstNonEmpty,
+                isPending
+            };
+        }
+
+        function updateIndivCurrentGrade() {
+            const pill = document.getElementById('indiv-current-grade');
+            const defPill = document.getElementById('indiv-current-def');
+            const sheetName = document.getElementById('sheet-course-select').value;
+            const stuRowStr = document.getElementById('indiv-student-select').value;
+            const actIdxStr = document.getElementById('sidebar-activity-select').value;
+
+            pill.classList.remove('grade-red', 'grade-blue', 'grade-black', 'grade-none');
+            defPill.classList.remove('grade-red', 'grade-blue', 'grade-black', 'grade-none');
+
+            if (!sheetName || !stuRowStr) {
+                pill.textContent = '-';
+                pill.classList.add('grade-none');
+                defPill.textContent = '-';
+                defPill.classList.add('grade-none');
+                return;
+            }
+
+            const sRow = Number(stuRowStr);
+            const defRes = calculateStudentDefinitiva(sheetName, sRow);
+            if (defRes.rounded === null) {
+                defPill.textContent = '-';
+                defPill.classList.add('grade-none');
+            } else {
+                defPill.textContent = String(defRes.rounded);
+                defPill.classList.add(getGradeColorClass(defRes.rounded));
+            }
+
+            if (actIdxStr === '') {
+                pill.textContent = '-';
+                pill.classList.add('grade-none');
+                return;
+            }
+
+            const uniqueAct = currentUniqueActivities[Number(actIdxStr)];
+            if (!uniqueAct) {
+                pill.textContent = '-';
+                pill.classList.add('grade-none');
+                return;
+            }
+
+            const info = getUniqueActivityEffectiveInfo(sheetName, sRow, uniqueAct);
+            if (info.displayVal === '' || info.displayVal === null || info.displayVal === undefined) {
+                pill.textContent = 'Vacía';
+                pill.classList.add('grade-none');
+            } else {
+                pill.textContent = String(info.displayVal);
+                pill.classList.add(getGradeColorClass(info.displayVal));
+            }
+        }
+
+        document.getElementById('sidebar-activity-select').addEventListener('change', () => {
+            updateSyncColsIndicator();
+            updateIndivCurrentGrade();
+        });
+
+        document.getElementById('indiv-student-select').addEventListener('change', (e) => {
+            const rowVal = e.target.value ? Number(e.target.value) : null;
+            highlightedStudentRow = rowVal;
+            document.querySelectorAll('.grid-table tbody tr').forEach(tr => {
+                tr.classList.toggle('row-highlighted', Number(tr.dataset.studentRow) === rowVal);
+            });
+            if (rowVal !== null) scrollToStudentRow(rowVal);
+            updateIndivCurrentGrade();
+        });
+
+        function stageUniqueActivityChange(sheetName, studentRow, uniqueAct, numericVal) {
+            if (!currentWB || !currentWB.Sheets[sheetName]) return;
+            const ws = currentWB.Sheets[sheetName];
+            const displayCourse = getCourseDisplayName(ws, sheetName);
+            const stuObj = currentCourseStudents.find(s => s.row === studentRow);
+            const studentName = stuObj ? stuObj.name : `Fila ${studentRow + 1}`;
+            const linkedSummary = uniqueAct.linkedCols.map(c => c.colRef).join(', ');
+
+            uniqueAct.linkedCols.forEach(col => {
+                const existingIdx = stagedEntries.findIndex(
+                    e => e.sheetName === sheetName && e.studentRow === studentRow && e.colIdx === col.colIdx
+                );
+                const entry = {
+                    sheetName,
+                    displayCourse,
+                    studentRow,
+                    studentName,
+                    colIdx: col.colIdx,
+                    colRef: col.colRef,
+                    rawLabel: col.rawLabel,
+                    baseName: uniqueAct.baseName,
+                    normKey: uniqueAct.normKey,
+                    linkedCount: uniqueAct.linkedCols.length,
+                    linkedSummary,
+                    numericVal
+                };
+
+                if (existingIdx > -1) {
+                    stagedEntries[existingIdx] = entry;
+                } else {
+                    stagedEntries.push(entry);
+                }
+            });
+        }
+
+        function removeLogicalChange(sheetName, studentRow, normKey) {
+            stagedEntries = stagedEntries.filter(
+                e => !(e.sheetName === sheetName && e.studentRow === studentRow && e.normKey === normKey)
+            );
+            updateChangesUI();
+            updateIndivCurrentGrade();
+            const activeSheet = document.getElementById('sheet-course-select').value;
+            if (activeSheet) renderSpreadsheetGrid(activeSheet);
+            hasUnsavedChanges = true;
+        }
+
+        /**
+         * RENDERIZADO DE LA PLANILLA INTERACTIVA EN TIEMPO REAL
+         */
+        function renderSpreadsheetGrid(sheetName) {
+            const container = document.getElementById('spreadsheet-container');
+            if (!currentWB || !sheetName || currentCourseStudents.length === 0) {
+                container.innerHTML = `
+                    <div class="spreadsheet-empty">
+                        <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+                        <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">No hay estudiantes visibles en esta hoja</div>
+                    </div>
+                `;
+                updateCourseAverageBadge(null);
+                return;
+            }
+
+            const visibleActivities = currentUniqueActivities
+                .map((act, originalIdx) => ({ act, originalIdx }))
+                .filter(({ act }) => !hiddenActivityKeys.has(`${sheetName}__${act.normKey}`));
+
+            let html = '<table class="grid-table"><thead><tr>';
+            html += '<th class="col-idx-head">#</th>';
+            html += '<th class="col-name-head">Estudiante</th>';
+
+            visibleActivities.forEach(({ act, originalIdx }) => {
+                const tooltip = act.linkedCols.map(c => `[${c.colRef}] ${c.rawLabel}`).join('\n');
+                const badgeHtml = act.linkedCols.length > 1
+                    ? `<span class="th-sub-badge">×${act.linkedCols.length}</span>`
+                    : '';
+                html += `<th data-act-idx="${originalIdx}" title="${tooltip.replace(/"/g, '&quot;')}">
+                    <div class="th-title">${act.baseName}</div>
+                    ${badgeHtml}
+                </th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            currentCourseStudents.forEach((stu, sIdx) => {
+                const isHl = highlightedStudentRow === stu.row;
+                html += `<tr data-student-row="${stu.row}" data-stu-idx="${sIdx}" class="${isHl ? 'row-highlighted' : ''}">`;
+                html += `<td class="col-idx-cell">${sIdx + 1}</td>`;
+                html += `<td class="col-name-cell" data-student-row="${stu.row}" data-student-name="${stu.name.replace(/"/g, '&quot;')}">${stu.name}</td>`;
+
+                visibleActivities.forEach(({ act, originalIdx }, visIdx) => {
+                    const info = getUniqueActivityEffectiveInfo(sheetName, stu.row, act);
+                    const valStr = info.displayVal !== '' && info.displayVal !== null && info.displayVal !== undefined
+                        ? String(info.displayVal)
+                        : '';
+                    const colorCls = getGradeColorClass(valStr);
+                    const pendingCls = info.isPending ? 'cell-pending' : '';
+
+                    html += `<td class="${pendingCls}">
+                        <input
+                            type="text"
+                            class="cell-editor ${colorCls}"
+                            value="${valStr.replace(/"/g, '&quot;')}"
+                            data-stu-idx="${sIdx}"
+                            data-act-idx="${originalIdx}"
+                            data-vis-idx="${visIdx}"
+                            data-student-row="${stu.row}"
+                            data-original="${valStr.replace(/"/g, '&quot;')}"
+                            autocomplete="off"
+                        >
+                    </td>`;
+                });
+
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            updateCourseAverageBadge(sheetName);
+
+            // Menú flotante de Definitiva + Foto al acercar el mouse (o tocar en pantalla táctil) sobre el estudiante
+            container.querySelectorAll('.col-name-cell').forEach(nameCell => {
+                nameCell.addEventListener('mouseenter', () => {
+                    showDefHoverMenu(
+                        nameCell,
+                        sheetName,
+                        Number(nameCell.dataset.studentRow),
+                        nameCell.dataset.studentName
+                    );
+                });
+                nameCell.addEventListener('mouseleave', () => {
+                    scheduleHideDefHoverMenu();
+                });
+                nameCell.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    showDefHoverMenu(
+                        nameCell,
+                        sheetName,
+                        Number(nameCell.dataset.studentRow),
+                        nameCell.dataset.studentName
+                    );
+                });
+            });
+
+            // Eventos de edición directa, teclado y pegado (Ctrl+V) por celda
+            container.querySelectorAll('.cell-editor').forEach(input => {
+                input.addEventListener('focus', () => {
+                    const sRow = Number(input.dataset.studentRow);
+                    highlightedStudentRow = sRow;
+                    container.querySelectorAll('tbody tr').forEach(tr => {
+                        tr.classList.toggle('row-highlighted', Number(tr.dataset.studentRow) === sRow);
+                    });
+                });
+
+                input.addEventListener('input', () => {
+                    input.classList.remove('grade-red', 'grade-blue', 'grade-black', 'grade-none');
+                    input.classList.add(getGradeColorClass(input.value));
+                });
+
+                input.addEventListener('keydown', (ev) => {
+                    const sIdx = Number(input.dataset.stuIdx);
+                    const visIdx = Number(input.dataset.visIdx);
+
+                    if (ev.key === 'Enter' || ev.key === 'ArrowDown') {
+                        ev.preventDefault();
+                        const next = container.querySelector(`.cell-editor[data-stu-idx="${sIdx + 1}"][data-vis-idx="${visIdx}"]`);
+                        if (next) { next.focus(); next.select(); }
+                        else input.blur();
+                    } else if (ev.key === 'ArrowUp') {
+                        ev.preventDefault();
+                        const prev = container.querySelector(`.cell-editor[data-stu-idx="${sIdx - 1}"][data-vis-idx="${visIdx}"]`);
+                        if (prev) { prev.focus(); prev.select(); }
+                    } else if (ev.key === 'ArrowRight' && input.selectionStart === input.value.length) {
+                        const right = container.querySelector(`.cell-editor[data-stu-idx="${sIdx}"][data-vis-idx="${visIdx + 1}"]`);
+                        if (right) { ev.preventDefault(); right.focus(); right.select(); }
+                    } else if (ev.key === 'ArrowLeft' && input.selectionStart === 0) {
+                        const left = container.querySelector(`.cell-editor[data-stu-idx="${sIdx}"][data-vis-idx="${visIdx - 1}"]`);
+                        if (left) { ev.preventDefault(); left.focus(); left.select(); }
+                    }
+                });
+
+                input.addEventListener('blur', () => {
+                    const rawVal = input.value.trim();
+                    const origVal = (input.dataset.original || '').trim();
+                    if (rawVal === origVal) return;
+
+                    if (rawVal === '') {
+                        input.value = origVal;
+                        input.classList.remove('grade-red', 'grade-blue', 'grade-black', 'grade-none');
+                        input.classList.add(getGradeColorClass(origVal));
+                        return;
+                    }
+
+                    const numVal = parseNumericGrade(rawVal);
+                    if (numVal === null) {
+                        showToast('Ingresa una nota numérica válida', '⚠️');
+                        input.value = origVal;
+                        input.classList.remove('grade-red', 'grade-blue', 'grade-black', 'grade-none');
+                        input.classList.add(getGradeColorClass(origVal));
+                        return;
+                    }
+
+                    const sRow = Number(input.dataset.studentRow);
+                    const aIdx = Number(input.dataset.actIdx);
+                    const uniqueAct = currentUniqueActivities[aIdx];
+                    if (!uniqueAct) return;
+
+                    stageUniqueActivityChange(sheetName, sRow, uniqueAct, numVal);
+                    input.value = String(numVal);
+                    input.dataset.original = String(numVal);
+                    input.classList.remove('grade-red', 'grade-blue', 'grade-black', 'grade-none');
+                    input.classList.add(getGradeColorClass(numVal));
+                    if (input.parentElement) input.parentElement.classList.add('cell-pending');
+
+                    refreshLiveDefinitivasInGrid(sheetName);
+                    updateChangesUI();
+                    updateIndivCurrentGrade();
+                    hasUnsavedChanges = true;
+                });
+
+                input.addEventListener('paste', (ev) => {
+                    const clipText = (ev.clipboardData || window.clipboardData)?.getData('text');
+                    if (!clipText) return;
+
+                    const normalizedText = clipText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                    // Permitir pegado nativo si es un único valor simple sin saltos de línea ni tabuladores
+                    if (!normalizedText.includes('\n') && !normalizedText.includes('\t')) return;
+
+                    ev.preventDefault();
+                    const rawLines = normalizedText.split('\n');
+                    if (rawLines.length > 1 && rawLines[rawLines.length - 1].trim() === '') {
+                        rawLines.pop();
+                    }
+
+                    const matrix = rawLines.map(line => line.split('\t'));
+                    const startStuIdx = Number(input.dataset.stuIdx);
+                    const startVisIdx = Number(input.dataset.visIdx);
+                    const availableStudents = currentCourseStudents.length - startStuIdx;
+                    const isSingleColumn = matrix.every(r => r.length === 1);
+
+                    // Verificar discrepancia de cantidad respecto a los estudiantes disponibles
+                    if (matrix.length !== availableStudents || (isSingleColumn && startStuIdx > 0 && matrix.length === currentCourseStudents.length)) {
+                        pendingPasteContext = {
+                            sheetName,
+                            startStuIdx,
+                            startVisIdx,
+                            matrix
+                        };
+
+                        document.getElementById('paste-stat-pasted').textContent = String(matrix.length);
+                        document.getElementById('paste-stat-students').textContent = String(availableStudents);
+
+                        const btnTop = document.getElementById('btn-paste-from-top');
+                        const detailEl = document.getElementById('paste-warning-detail');
+
+                        if (startStuIdx > 0 && matrix.length <= currentCourseStudents.length) {
+                            btnTop.style.display = 'inline-flex';
+                            detailEl.textContent = `Copiaste ${matrix.length} nota(s), pero seleccionaste la fila #${startStuIdx + 1} (quedan ${availableStudents} estudiantes hacia abajo). Puedes alinearlas desde el estudiante #1 o pegarlas desde la fila actual.`;
+                        } else if (matrix.length > availableStudents) {
+                            btnTop.style.display = 'none';
+                            detailEl.textContent = `Copiaste ${matrix.length} notas, pero solo hay ${availableStudents} estudiante(s) disponibles desde esta fila. Las ${matrix.length - availableStudents} notas sobrantes se omitirán si continúas.`;
+                        } else {
+                            btnTop.style.display = 'none';
+                            detailEl.textContent = `Copiaste ${matrix.length} nota(s) para una lista de ${availableStudents} estudiantes disponibles (faltan ${availableStudents - matrix.length} notas).`;
+                        }
+
+                        modalPasteWarning.classList.add('open');
+                        return;
+                    }
+
+                    executeMatrixPaste(sheetName, startStuIdx, startVisIdx, matrix);
+                });
+            });
+        }
+
+        function executeMatrixPaste(sheetName, startStuIdx, startVisIdx, matrix) {
+            const visibleActivities = currentUniqueActivities.filter(
+                act => !hiddenActivityKeys.has(`${sheetName}__${act.normKey}`)
+            );
+            let appliedCount = 0;
+            let skippedInvalid = 0;
+
+            for (let rOffset = 0; rOffset < matrix.length; rOffset++) {
+                const stuIdx = startStuIdx + rOffset;
+                if (stuIdx >= currentCourseStudents.length) break;
+                const stuObj = currentCourseStudents[stuIdx];
+                const rowCells = matrix[rOffset];
+
+                for (let cOffset = 0; cOffset < rowCells.length; cOffset++) {
+                    const visIdx = startVisIdx + cOffset;
+                    if (visIdx >= visibleActivities.length) break;
+                    const rawCell = (rowCells[cOffset] || '').trim();
+                    if (rawCell === '') continue;
+
+                    const numVal = parseNumericGrade(rawCell);
+                    if (numVal === null) {
+                        skippedInvalid++;
+                        continue;
+                    }
+
+                    stageUniqueActivityChange(sheetName, stuObj.row, visibleActivities[visIdx], numVal);
+                    appliedCount++;
+                }
+            }
+
+            renderSpreadsheetGrid(sheetName);
+            updateChangesUI();
+            updateIndivCurrentGrade();
+            if (appliedCount > 0) {
+                hasUnsavedChanges = true;
+                const extra = skippedInvalid > 0 ? ` (${skippedInvalid} omitidas)` : '';
+                showToast(`${appliedCount} calificación(es) pegadas en la planilla${extra}`, '📋');
+            } else {
+                showToast('No se detectaron notas numéricas válidas al pegar', '⚠️');
+            }
+        }
+
+        document.getElementById('btn-cancel-paste').addEventListener('click', () => {
+            pendingPasteContext = null;
+            modalPasteWarning.classList.remove('open');
+        });
+        document.getElementById('btn-cancel-paste-x').addEventListener('click', () => {
+            pendingPasteContext = null;
+            modalPasteWarning.classList.remove('open');
+        });
+        document.getElementById('btn-paste-from-top').addEventListener('click', () => {
+            if (!pendingPasteContext) return;
+            const ctx = pendingPasteContext;
+            pendingPasteContext = null;
+            modalPasteWarning.classList.remove('open');
+            executeMatrixPaste(ctx.sheetName, 0, ctx.startVisIdx, ctx.matrix);
+        });
+        document.getElementById('btn-confirm-paste-anyway').addEventListener('click', () => {
+            if (!pendingPasteContext) return;
+            const ctx = pendingPasteContext;
+            pendingPasteContext = null;
+            modalPasteWarning.classList.remove('open');
+            executeMatrixPaste(ctx.sheetName, ctx.startStuIdx, ctx.startVisIdx, ctx.matrix);
+        });
+
+        /**
+         * BUSCADOR GLOBAL DE ESTUDIANTES Y CALIFICACIÓN INDIVIDUAL / GRUPAL
+         */
+        const globalSearchInput = document.getElementById('global-student-search');
+        const globalSearchResults = document.getElementById('global-search-results');
+
+        globalSearchInput.addEventListener('input', () => {
+            const q = cleanStr(globalSearchInput.value);
+            if (q.length < 2) {
+                globalSearchResults.style.display = 'none';
+                globalSearchResults.innerHTML = '';
+                return;
+            }
+
+            const matches = allStudentsIndex.filter(item => cleanStr(item.name).includes(q)).slice(0, 25);
+            if (matches.length === 0) {
+                globalSearchResults.innerHTML = '<div style="padding: 10px; font-size: 12px; color: var(--text-secondary);">Sin coincidencias</div>';
+                globalSearchResults.style.display = 'block';
+                return;
+            }
+
+            globalSearchResults.innerHTML = '';
+            matches.forEach(item => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'search-result-row';
+                rowDiv.innerHTML = `
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">👤 ${item.name}</span>
+                    <span class="search-course-tag">${item.displayCourse}</span>
+                `;
+                rowDiv.addEventListener('click', () => {
+                    globalSearchInput.value = '';
+                    globalSearchResults.style.display = 'none';
+                    const activeSheet = document.getElementById('sheet-course-select').value;
+                    if (activeSheet !== item.sheetName) {
+                        loadCourseSheet(item.sheetName, item.row);
+                    } else {
+                        document.getElementById('indiv-student-select').value = String(item.row);
+                        highlightedStudentRow = item.row;
+                        document.querySelectorAll('.grid-table tbody tr').forEach(tr => {
+                            tr.classList.toggle('row-highlighted', Number(tr.dataset.studentRow) === item.row);
+                        });
+                        scrollToStudentRow(item.row);
+                        updateIndivCurrentGrade();
+                    }
+                    document.querySelectorAll('.mode-switch [data-mode]').forEach(b => {
+                        b.classList.toggle('active', b.dataset.mode === 'mode-indiv');
+                    });
+                    document.getElementById('mode-indiv').classList.add('active');
+                    document.getElementById('mode-group').classList.remove('active');
+                });
+                globalSearchResults.appendChild(rowDiv);
+            });
+            globalSearchResults.style.display = 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!globalSearchInput.contains(e.target) && !globalSearchResults.contains(e.target)) {
+                globalSearchResults.style.display = 'none';
+            }
+        });
+
+        // Aplicar nota Individual
+        document.getElementById('btn-apply-indiv').addEventListener('click', () => {
+            const sheetName = document.getElementById('sheet-course-select').value;
+            const stuRowStr = document.getElementById('indiv-student-select').value;
+            const actIdxStr = document.getElementById('sidebar-activity-select').value;
+            const rawGrade = document.getElementById('indiv-grade-input').value.trim();
+
+            if (!sheetName || !stuRowStr || actIdxStr === '') {
+                return showToast('Selecciona curso, actividad y estudiante', '⚠️');
+            }
+            const numGrade = parseNumericGrade(rawGrade);
+            if (numGrade === null) {
+                return showToast('Ingresa una nota numérica válida', '⚠️');
+            }
+
+            const uniqueAct = currentUniqueActivities[Number(actIdxStr)];
+            const studentRow = Number(stuRowStr);
+            stageUniqueActivityChange(sheetName, studentRow, uniqueAct, numGrade);
+
+            highlightedStudentRow = studentRow;
+            renderSpreadsheetGrid(sheetName);
+            scrollToStudentRow(studentRow);
+            updateChangesUI();
+            updateIndivCurrentGrade();
+            hasUnsavedChanges = true;
+            showToast(`Nota ${numGrade} aplicada`, '✅');
+        });
+
+        // Aplicar nota Grupal
+        document.getElementById('btn-apply-group').addEventListener('click', () => {
+            const sheetName = document.getElementById('sheet-course-select').value;
+            const actIdxStr = document.getElementById('sidebar-activity-select').value;
+            const rawGrade = document.getElementById('group-grade-input').value.trim();
+            const checked = Array.from(document.querySelectorAll('.chk-group-student:checked'));
+
+            if (!sheetName || actIdxStr === '') {
+                return showToast('Selecciona curso y actividad', '⚠️');
+            }
+            if (checked.length === 0) {
+                return showToast('Marca al menos un estudiante del grupo', '⚠️');
+            }
+            const numGrade = parseNumericGrade(rawGrade);
+            if (numGrade === null) {
+                return showToast('Ingresa una nota numérica válida', '⚠️');
+            }
+
+            const uniqueAct = currentUniqueActivities[Number(actIdxStr)];
+            checked.forEach(cb => {
+                stageUniqueActivityChange(sheetName, Number(cb.value), uniqueAct, numGrade);
+            });
+
+            renderSpreadsheetGrid(sheetName);
+            updateChangesUI();
+            updateIndivCurrentGrade();
+            hasUnsavedChanges = true;
+            showToast(`Nota ${numGrade} aplicada a ${checked.length} estudiante(s)`, '👥');
+        });
+
+        /**
+         * GESTIÓN DE CAMBIOS PENDIENTES, GUARDADO EN MEMORIA Y DESCARGA EXCEL
+         */
+        function getGroupedPendingChanges() {
+            const map = new Map();
+            stagedEntries.forEach(entry => {
+                const key = `${entry.sheetName}__${entry.studentRow}__${entry.normKey}`;
+                if (!map.has(key)) {
+                    map.set(key, {
+                        sheetName: entry.sheetName,
+                        displayCourse: entry.displayCourse,
+                        studentRow: entry.studentRow,
+                        studentName: entry.studentName,
+                        baseName: entry.baseName,
+                        normKey: entry.normKey,
+                        linkedCount: entry.linkedCount,
+                        linkedSummary: entry.linkedSummary,
+                        numericVal: entry.numericVal
+                    });
+                } else {
+                    map.get(key).numericVal = entry.numericVal;
+                }
+            });
+            return Array.from(map.values()).reverse();
+        }
+
+        function updateChangesUI() {
+            const grouped = getGroupedPendingChanges();
+            const count = grouped.length;
+
+            document.getElementById('top-changes-badge').textContent = String(count);
+            document.getElementById('side-changes-count').textContent = String(count);
+            document.getElementById('changes-summary-label').textContent = `${count} cambio(s) pendiente(s)`;
+
+            const discardBtn = document.getElementById('btn-discard-all');
+            const listEl = document.getElementById('changes-list-container');
+
+            if (count === 0) {
+                discardBtn.style.display = 'none';
+                listEl.innerHTML = `
+                    <div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 28px 12px;">
+                        No hay cambios pendientes por guardar.
+                    </div>
+                `;
+                return;
+            }
+
+            discardBtn.style.display = 'inline-block';
+            listEl.innerHTML = '';
+
+            grouped.forEach(item => {
+                const colorCls = getGradeColorClass(item.numericVal);
+                const syncTag = item.linkedCount > 1 ? ` • ×${item.linkedCount}` : '';
+                const card = document.createElement('div');
+                card.className = 'change-card';
+                card.innerHTML = `
+                    <div class="change-info">
+                        <div class="change-stu" title="${item.studentName.replace(/"/g, '&quot;')}">${item.studentName}</div>
+                        <div class="change-meta" title="${item.displayCourse} — ${item.baseName} (${item.linkedSummary})">
+                            <span>${item.displayCourse}</span>
+                            <span>•</span>
+                            <span style="overflow: hidden; text-overflow: ellipsis;">${item.baseName}${syncTag}</span>
+                        </div>
+                    </div>
+                    <div class="change-right">
+                        <span class="change-grade-tag ${colorCls}">${item.numericVal}</span>
+                        <button type="button" class="btn-remove-change" title="Deshacer este cambio">✕</button>
+                    </div>
+                `;
+                card.querySelector('.btn-remove-change').addEventListener('click', () => {
+                    removeLogicalChange(item.sheetName, item.studentRow, item.normKey);
+                });
+                listEl.appendChild(card);
+            });
+        }
+
+        document.getElementById('btn-discard-all').addEventListener('click', () => {
+            stagedEntries = [];
+            updateChangesUI();
+            updateIndivCurrentGrade();
+            const sheetName = document.getElementById('sheet-course-select').value;
+            if (sheetName) renderSpreadsheetGrid(sheetName);
+            showToast('Cambios pendientes descartados', '🗑️');
+        });
+
+        /**
+         * Aplica los cambios pendientes al libro Excel preservando estilos, tipos y formatos
+         * originales de Classroom Live en cada celda (sin alterar columnas ni estructura).
+         */
+        function applyChangesToWorkbook() {
+            if (!currentWB || stagedEntries.length === 0) return 0;
+            let count = 0;
+
+            stagedEntries.forEach(entry => {
+                const ws = currentWB.Sheets[entry.sheetName];
+                if (!ws) return;
+
+                const cellRef = XLSX.utils.encode_cell({ r: entry.studentRow, c: entry.colIdx });
+                const existingCell = ws[cellRef];
+
+                if (existingCell) {
+                    existingCell.v = entry.numericVal;
+                    existingCell.t = 'n';
+                    delete existingCell.w;
+                } else {
+                    ws[cellRef] = {
+                        t: 'n',
+                        v: entry.numericVal
+                    };
+                }
+                count++;
+            });
+
+            return count;
+        }
+
+        function handleSaveToMemory() {
+            if (!currentWB) return;
+            if (stagedEntries.length === 0) {
+                return showToast('No hay cambios pendientes para aplicar', 'ℹ️');
+            }
+
+            const logicalCount = getGroupedPendingChanges().length;
+            applyChangesToWorkbook();
+            stagedEntries = [];
+            updateChangesUI();
+            updateIndivCurrentGrade();
+
+            const sheetName = document.getElementById('sheet-course-select').value;
+            if (sheetName) renderSpreadsheetGrid(sheetName);
+
+            hasUnsavedChanges = true;
+            showToast(`${logicalCount} cambio(s) guardados en memoria`, '💾');
+        }
+
+        function handleDownloadExcel() {
+            if (!currentWB) return;
+
+            if (stagedEntries.length > 0) {
+                applyChangesToWorkbook();
+                stagedEntries = [];
+                updateChangesUI();
+                updateIndivCurrentGrade();
+                const sheetName = document.getElementById('sheet-course-select').value;
+                if (sheetName) renderSpreadsheetGrid(sheetName);
+            }
+
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const outFileName = `califica.(${yyyy}-${mm}-${dd}_${hh}-${min}).${originalFileExt}`;
+
+            try {
+                XLSX.writeFile(currentWB, outFileName, {
+                    bookType: originalBookType,
+                    cellStyles: true
+                });
+                hasUnsavedChanges = false;
+                showToast(`Archivo descargado: ${outFileName}`, '📥');
+            } catch (err) {
+                console.error(err);
+                showToast('Error al generar el archivo Excel', '⚠️');
+            }
+        }
+
+        document.getElementById('btn-top-memory').addEventListener('click', handleSaveToMemory);
+        document.getElementById('btn-side-memory').addEventListener('click', handleSaveToMemory);
+        document.getElementById('btn-top-download').addEventListener('click', handleDownloadExcel);
+        document.getElementById('btn-side-download').addEventListener('click', handleDownloadExcel);
+
+        window.addEventListener('orientationchange', () => {
+            globalSearchResults.style.display = 'none';
+            colsPopover.classList.remove('open');
+            defHoverMenu.classList.remove('visible');
+        });
+    </script>
+</body>
+</html>
